@@ -34,7 +34,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   dailyGoal: 20,
   interleave: true,
   examDurationSec: 110 * 60, // 暫定110分
-  theme: 'auto',
+  theme: 'light', // ベースは白（明るいテーマ）を既定に
   seedVersion: 0,
 }
 

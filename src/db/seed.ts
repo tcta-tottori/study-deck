@@ -33,3 +33,16 @@ export async function ensureSeeded(): Promise<void> {
 
   await updateSettings({ seedVersion: SEED_VERSION })
 }
+
+/**
+ * ベースカラーを白（ライト）に統一するための一度きりの移行。
+ * 旧既定 'auto'（＝端末がダーク時はダーク表示）だった端末を 'light' に寄せる。
+ * 端末ごとに1回だけ実行。以後ユーザーがテーマを選び直せばそれを尊重する。
+ */
+export async function migrateThemeBase(): Promise<void> {
+  const KEY = 'theme-base-migrated-v1'
+  if (localStorage.getItem(KEY)) return
+  const s = await getSettings()
+  if (s.theme === 'auto') await updateSettings({ theme: 'light' })
+  localStorage.setItem(KEY, '1')
+}

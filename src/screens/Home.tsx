@@ -5,6 +5,7 @@ import { useActivity, useQuestions, useRecordsMap, useSettings } from '../hooks/
 import { computeStreak, dayKey } from '../lib/dateutil'
 import { categoryStats, dueCount, overallAccuracy } from '../lib/stats'
 import { categoryLabel } from '../types'
+import { Icon } from '../components/Icon'
 
 export default function Home({
   onStartQuiz,
@@ -48,10 +49,10 @@ export default function Home({
         <h1>生産管理プランニング3級</h1>
         <span className="spacer" />
         <button className="iconbtn" onClick={() => go('dashboard')} aria-label="成績">
-          📊
+          <Icon name="chart" size={20} />
         </button>
         <button className="iconbtn" onClick={() => go('settings')} aria-label="設定">
-          ⚙️
+          <Icon name="gear" size={20} />
         </button>
       </header>
 
@@ -70,7 +71,7 @@ export default function Home({
           <div className="hero-top">
             <span>今日の学習</span>
             <span className="hero-streak">
-              <span className="streak-flame">🔥</span> {streak}日連続
+              <Icon name="flame" size={15} /> {streak}日連続
             </span>
           </div>
           <div className="hero-num">
@@ -82,10 +83,10 @@ export default function Home({
           </div>
           <div className="hero-cta">
             <button className="go" onClick={() => onStartQuiz({})}>
-              ⚡ 今すぐ1問
+              <Icon name="bolt" size={19} /> 今すぐ1問
             </button>
             <button className="mini" onClick={() => onStartQuiz({ wrongOnly: true })}>
-              <span style={{ fontSize: 18 }}>🩹</span>
+              <Icon name="refresh" size={19} />
               間違い
               <br />
               だけ
@@ -114,29 +115,29 @@ export default function Home({
         </div>
         <div className="tiles">
           <button className="tile" onClick={() => onStartQuiz({ limit: 5 })}>
-            <span className="tile-ic" style={{ background: 'var(--tile-blue)' }}>
-              ⚡
+            <span className="tile-ic">
+              <Icon name="bolt" size={22} />
             </span>
             <span className="lbl">5問</span>
             <span className="sub">1分</span>
           </button>
           <button className="tile" onClick={() => onStartQuiz({ limit: 10 })}>
-            <span className="tile-ic" style={{ background: 'var(--tile-green)' }}>
-              📗
+            <span className="tile-ic">
+              <Icon name="book" size={22} />
             </span>
             <span className="lbl">10問</span>
             <span className="sub">しっかり</span>
           </button>
           <button className="tile" onClick={() => onStartQuiz({ timeboxSec: 180 })}>
-            <span className="tile-ic" style={{ background: 'var(--tile-gold)' }}>
-              ⏱️
+            <span className="tile-ic">
+              <Icon name="timer" size={22} />
             </span>
             <span className="lbl">3分</span>
             <span className="sub">時間で</span>
           </button>
           <button className="tile" onClick={() => onStartQuiz({ wrongOnly: true })}>
-            <span className="tile-ic" style={{ background: 'var(--tile-purple)' }}>
-              🩹
+            <span className="tile-ic">
+              <Icon name="refresh" size={22} />
             </span>
             <span className="lbl">復習</span>
             <span className="sub">苦手</span>
@@ -148,7 +149,12 @@ export default function Home({
           <h2>試験対策</h2>
         </div>
         <div className="prodcard">
-          <div className="pc-title">📝 本番シミュレーション</div>
+          <div className="pc-title">
+            <span className="pc-ic">
+              <Icon name="clipboard" size={20} />
+            </span>
+            本番シミュレーション
+          </div>
           <div className="pc-desc">公式問題を優先して40問・制限時間つき。本番と同じ形式で実力チェック。</div>
           <div className="pc-figure">
             <span className="big">24</span>
