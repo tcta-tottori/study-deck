@@ -71,9 +71,17 @@ export default function Settings({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="card">
-          <h2>本番シミュレーション</h2>
+          <h2>試験</h2>
           <label className="field">
-            <span className="lbl">制限時間（分）</span>
+            <span className="lbl">試験日（ホームのカウントダウン）</span>
+            <input
+              type="date"
+              value={s.examDate}
+              onChange={(e) => patch({ examDate: e.target.value || s.examDate })}
+            />
+          </label>
+          <label className="field" style={{ marginBottom: 0 }}>
+            <span className="lbl">本番シミュレーションの制限時間（分）</span>
             <input
               type="number"
               min={1}

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import type { View } from '../App'
 import type { QuizConfig } from './Quiz'
 import { useActivity, useQuestions, useRecordsMap, useSettings } from '../hooks/useAppData'
-import { computeStreak, dayKey } from '../lib/dateutil'
+import { computeStreak, dayKey, daysUntil, formatJpDate } from '../lib/dateutil'
 import { categoryStats, dueCount, overallAccuracy } from '../lib/stats'
 import { categoryLabel } from '../types'
 import { Icon } from '../components/Icon'
@@ -38,6 +38,9 @@ export default function Home({
   const goal = settings?.dailyGoal ?? 20
   const goalPct = Math.min(100, Math.round((todayCount / goal) * 100))
 
+  const examDate = settings?.examDate ?? '2026-10-04'
+  const daysLeft = daysUntil(examDate, now)
+
   const weak = [...cats]
     .filter((c) => c.answered > 0)
     .sort((a, b) => a.accuracy - b.accuracy)
@@ -65,6 +68,30 @@ export default function Home({
             シンプル
           </button>
         </div>
+
+        {/* 試験までのカウントダウン（タップで設定へ） */}
+        <button className="countdown" onClick={() => go('settings')}>
+          <span className="cd-ic">
+            <Icon name="calendar" size={20} />
+          </span>
+          <span className="cd-body">
+            <span className="cd-label">試験まで</span>
+            <span className="cd-main">
+              {Number.isNaN(daysLeft) ? (
+                '試験日を設定'
+              ) : daysLeft > 0 ? (
+                <>
+                  あと<strong>{daysLeft}</strong>日
+                </>
+              ) : daysLeft === 0 ? (
+                <strong>本番当日！</strong>
+              ) : (
+                '試験日を過ぎています'
+              )}
+            </span>
+          </span>
+          <span className="cd-date">{formatJpDate(examDate)}</span>
+        </button>
 
         {/* ヒーローカード（今日の学習 + ワンタップ開始） */}
         <section className="hero">

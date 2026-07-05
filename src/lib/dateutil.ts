@@ -29,6 +29,23 @@ export function computeStreak(days: Set<string>, todayKey: string): number {
   return streak
 }
 
+/** 今日（ローカル0時）から試験日（'YYYY-MM-DD'）までの残り日数。過去なら負。 */
+export function daysUntil(dateStr: string, now: number = Date.now()): number {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  if (!y || !m || !d) return NaN
+  const target = new Date(y, m - 1, d).getTime()
+  const today = new Date(now)
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()
+  return Math.round((target - todayStart) / (24 * 60 * 60 * 1000))
+}
+
+/** 'YYYY-MM-DD' → 'M月D日' */
+export function formatJpDate(dateStr: string): string {
+  const [, m, d] = dateStr.split('-').map(Number)
+  if (!m || !d) return dateStr
+  return `${m}月${d}日`
+}
+
 export function formatDuration(sec: number): string {
   const m = Math.floor(sec / 60)
   const s = sec % 60

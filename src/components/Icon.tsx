@@ -15,6 +15,7 @@ export type IconName =
   | 'flame'
   | 'arrow'
   | 'pencil'
+  | 'calendar'
 
 const PATHS: Record<IconName, ReactElement> = {
   home: (
@@ -81,6 +82,13 @@ const PATHS: Record<IconName, ReactElement> = {
     <>
       <path d="M4 20h4L18.5 9.5a1.9 1.9 0 0 0 0-2.7l-1.3-1.3a1.9 1.9 0 0 0-2.7 0L4 16z" />
       <path d="M13.5 7 17 10.5" />
+    </>
+  ),
+  calendar: (
+    <>
+      <rect x="3.5" y="5" width="17" height="15" rx="2.2" />
+      <path d="M3.5 9.5h17" />
+      <path d="M8 3v3.5M16 3v3.5" />
     </>
   ),
 }
