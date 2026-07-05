@@ -38,7 +38,8 @@ npm run preview    # ビルド成果物のプレビュー
 ## デプロイ（GitHub Pages）
 
 - `vite.config.ts` の `base` はリポジトリ名 `/study-deck/` に設定済み。
-- `main` ブランチへの push で `.github/workflows/deploy.yml` が `dist/` をGitHub Pagesへ公開します（リポジトリ設定 → Pages → Source を「GitHub Actions」にしてください）。
+- `main` ブランチへの push で `.github/workflows/deploy.yml` がビルド成果物 `dist/` を **`gh-pages` ブランチ**へ push します。
+- リポジトリ設定 → Pages → Source を **「Deploy from a branch」→ `gh-pages` / `(root)`** にしてください。
 
 ## 公式過去問の取り込み
 
