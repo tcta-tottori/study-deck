@@ -4,6 +4,8 @@
 
 > 仕様の詳細は [`seisan-quiz-SPEC.md`](./seisan-quiz-SPEC.md) を参照。
 
+**🔗 公開デモ: https://tcta-tottori.github.io/study-deck/**（スマホで開いて「ホーム画面に追加」でPWA化・オフライン利用可）
+
 ## 主な機能
 
 - **一問一答（SRS）**: Leitner方式で「今忘れかけ」の問題を優先出題。回答→即採点（緑/赤）→解説展開→「次へ」のテンポループ。採点後は左スワイプでも次へ。
