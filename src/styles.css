@@ -165,6 +165,64 @@ button {
   box-shadow: var(--shadow-sm);
 }
 
+/* --- 試験カウントダウン --- */
+.countdown {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  text-align: left;
+  transition: transform 0.08s;
+}
+.countdown:active {
+  transform: scale(0.99);
+}
+.cd-ic {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--tile-blue);
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.cd-body {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  flex: 1;
+}
+.cd-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.cd-main {
+  font-size: 17px;
+  font-weight: 700;
+}
+.cd-main strong {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 0 2px;
+}
+.cd-date {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  padding: 5px 12px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
 /* --- Hero card (残高カード風) --- */
 .hero {
   background: linear-gradient(150deg, var(--hero-from), var(--hero-to));

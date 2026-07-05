@@ -90,6 +90,7 @@ export interface AppSettings {
   dailyGoal: number
   interleave: boolean
   examDurationSec: number
+  examDate: string // 試験日 "YYYY-MM-DD"（ホームのカウントダウン用）
   reminderTime?: string // "HH:MM" ローカル通知
   theme: 'auto' | 'light' | 'dark'
   anthropicApiKey?: string // 端末ローカル保存・非コミット
