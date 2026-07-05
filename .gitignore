@@ -21,10 +21,13 @@ pnpm-debug.log*
 .idea
 .DS_Store
 
-# ★ 公式過去問（著作物）は公開コードに含めない
+# ★ 公式過去問（著作物）は公開コードに含めない（JSON/CSVとも）
 src/data/questions.official*.json
+src/data/questions.official*.csv
 questions.official*.json
+questions.official*.csv
 questions.R*.json
+questions.R*.csv
 
 # ★ 公式PDF（問題・解答）はコミットしない
 *.pdf
