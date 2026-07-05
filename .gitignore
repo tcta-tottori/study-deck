@@ -25,3 +25,6 @@ pnpm-debug.log*
 src/data/questions.official*.json
 questions.official*.json
 questions.R*.json
+
+# ★ 公式PDF（問題・解答）はコミットしない
+*.pdf
