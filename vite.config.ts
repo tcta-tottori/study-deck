@@ -9,13 +9,13 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon-32.png', 'favicon-48.png', 'apple-touch-icon.png'],
       manifest: {
         name: '生産管理プランニング3級 学習',
         short_name: '生産管理3級',
         description: '苦手優先で高速反復。スキマ時間で合格ラインへ。',
-        theme_color: '#0f172a',
-        background_color: '#0f172a',
+        theme_color: '#2b2f86',
+        background_color: '#2b2f86',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/study-deck/',
