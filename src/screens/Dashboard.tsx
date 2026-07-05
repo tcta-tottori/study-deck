@@ -1,0 +1,169 @@
+import { useMemo } from 'react'
+import { useActivity, useExamResults, useQuestions, useRecordsMap } from '../hooks/useAppData'
+import { boxDistribution, categoryStats, overallAccuracy, passOutlook } from '../lib/stats'
+import { categoryLabel } from '../types'
+import { computeStreak, dayKey } from '../lib/dateutil'
+
+export default function Dashboard() {
+  const questions = useQuestions()
+  const records = useRecordsMap()
+  const activity = useActivity()
+  const exams = useExamResults()
+
+  const now = Date.now()
+  const data = useMemo(() => {
+    if (!questions || !records) return null
+    return {
+      cats: categoryStats(questions, records),
+      boxes: boxDistribution(questions, records),
+      acc: overallAccuracy(records),
+    }
+  }, [questions, records])
+
+  const streak = useMemo(
+    () => computeStreak(new Set((activity ?? []).map((a) => a.day)), dayKey(now)),
+    [activity, now],
+  )
+
+  if (!data) return <div className="screen"><div className="empty">読み込み中…</div></div>
+
+  const outlook = passOutlook(data.acc)
+  const totalAnswered = data.cats.reduce((s, c) => s + c.answered, 0)
+
+  return (
+    <>
+      <header className="appbar">
+        <h1>成績ダッシュボード</h1>
+      </header>
+      <div className="screen">
+        {totalAnswered === 0 && (
+          <div className="empty">
+            まだ学習記録がありません。<br />ホームから1問はじめましょう。
+          </div>
+        )}
+
+        {/* 合格ライン到達予測 */}
+        <div className="card">
+          <h2>合格ライン到達予測（60%）</h2>
+          <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <div style={{ fontSize: 40, fontWeight: 800, color: outlook.ok ? 'var(--correct)' : 'var(--accent)' }}>
+              {outlook.pct}%
+            </div>
+            <div className="chip" style={{ background: 'var(--surface-2)' }}>
+              🔥 連続{streak}日
+            </div>
+          </div>
+          <div className="progress" style={{ marginTop: 8 }}>
+            <span style={{ width: `${Math.min(100, outlook.pct)}%`, background: outlook.ok ? 'var(--correct)' : 'var(--accent)' }} />
+          </div>
+          <p className="muted" style={{ marginTop: 8 }}>{outlook.label}</p>
+        </div>
+
+        {/* カテゴリ別正答率 */}
+        <div className="card">
+          <h2>カテゴリ別正答率</h2>
+          {data.cats.length === 0 && <p className="muted">データなし</p>}
+          {data.cats.map((c) => {
+            const pct = Math.round(c.accuracy * 100)
+            return (
+              <div className="bar-item" key={c.category}>
+                <div className="bar-head">
+                  <span>{categoryLabel(c.category)}</span>
+                  <span className="muted">
+                    {c.answered > 0 ? `${pct}%` : '未学習'}（{c.answered}/{c.total}）
+                  </span>
+                </div>
+                <div className="bar-track">
+                  <div
+                    className="bar-fill"
+                    style={{
+                      width: `${c.answered > 0 ? pct : 0}%`,
+                      background: pct >= 60 ? 'var(--correct)' : pct >= 40 ? 'var(--accent)' : 'var(--wrong)',
+                    }}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* box分布 */}
+        <div className="card">
+          <h2>定着度（Leitner box分布）</h2>
+          <BoxDist dist={data.boxes} />
+          <p className="muted" style={{ marginTop: 6 }}>
+            左ほど苦手（box1）、右ほど定着（box5）。未学習は含みません。
+          </p>
+        </div>
+
+        {/* 模試スコア推移 */}
+        <div className="card">
+          <h2>模試スコア推移</h2>
+          {exams && exams.length > 0 ? (
+            <ScoreTrend scores={exams.map((e) => e.score)} />
+          ) : (
+            <p className="muted">本番シミュレーションを受けると推移が表示されます。</p>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
+function BoxDist({ dist }: { dist: number[] }) {
+  const boxes = [1, 2, 3, 4, 5]
+  const max = Math.max(1, ...boxes.map((b) => dist[b]))
+  const colors = ['var(--wrong)', '#f97316', 'var(--accent)', '#84cc16', 'var(--correct)']
+  return (
+    <div className="row" style={{ alignItems: 'flex-end', gap: 10, height: 120 }}>
+      {boxes.map((b, i) => {
+        const h = (dist[b] / max) * 100
+        return (
+          <div key={b} style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{ height: 90, display: 'flex', alignItems: 'flex-end' }}>
+              <div
+                style={{
+                  width: '100%',
+                  height: `${Math.max(4, h)}%`,
+                  background: colors[i],
+                  borderRadius: '8px 8px 0 0',
+                }}
+              />
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 700 }}>{dist[b]}</div>
+            <div className="muted" style={{ fontSize: 11 }}>box{b}</div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function ScoreTrend({ scores }: { scores: number[] }) {
+  const W = 320
+  const H = 140
+  const pad = 24
+  const n = scores.length
+  const maxX = Math.max(1, n - 1)
+  const x = (i: number) => pad + (i / maxX) * (W - pad * 2)
+  const y = (v: number) => H - pad - (v / 100) * (H - pad * 2)
+  const baseline = y(60)
+
+  const pts = scores.map((s, i) => `${x(i)},${y(s)}`).join(' ')
+
+  return (
+    <svg className="line" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="模試スコア推移">
+      {/* 合格ライン 60点 */}
+      <line x1={pad} y1={baseline} x2={W - pad} y2={baseline} stroke="var(--correct)" strokeDasharray="4 4" strokeWidth="1" />
+      <text x={W - pad} y={baseline - 4} fontSize="10" fill="var(--correct)" textAnchor="end">
+        合格60
+      </text>
+      {/* 軸 */}
+      <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="var(--border)" strokeWidth="1" />
+      {n > 1 && <polyline points={pts} fill="none" stroke="var(--primary)" strokeWidth="2.5" strokeLinejoin="round" />}
+      {scores.map((s, i) => (
+        <circle key={i} cx={x(i)} cy={y(s)} r="3.5" fill={s >= 60 ? 'var(--correct)' : 'var(--wrong)'} />
+      ))}
+    </svg>
+  )
+}
