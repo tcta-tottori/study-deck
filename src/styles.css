@@ -1,11 +1,11 @@
 :root {
   /* Light (primary look — フィンテック風・白基調) */
-  --bg: #eef2f8;
+  --bg: #f7f9fd;
   --surface: #ffffff;
-  --surface-2: #f1f4fa;
+  --surface-2: #eef2f9;
   --text: #0e1b38;
   --text-dim: #7b869b;
-  --border: #e6ebf3;
+  --border: #e8edf5;
   --primary: #2347c5;
   --primary-2: #1a3aa8;
   --primary-ink: #ffffff;
@@ -317,7 +317,8 @@ button {
   border-radius: 15px;
   display: grid;
   place-items: center;
-  font-size: 22px;
+  background: var(--tile-blue);
+  color: var(--primary);
 }
 .tile .lbl {
   font-size: 12px;
@@ -342,7 +343,17 @@ button {
   font-weight: 800;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+}
+.prodcard .pc-ic {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--tile-blue);
+  color: var(--primary);
+  align-items: center;
+  justify-content: center;
 }
 .prodcard .pc-desc {
   font-size: 13px;
@@ -650,14 +661,13 @@ button {
   border-radius: 12px;
 }
 .nav button .ic {
-  font-size: 21px;
-  filter: grayscale(0.6) opacity(0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
 }
 .nav button.active {
-  color: var(--accent);
-}
-.nav button.active .ic {
-  filter: none;
+  color: var(--primary);
 }
 
 /* --- Forms --- */

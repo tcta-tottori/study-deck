@@ -8,6 +8,7 @@ import ImportScreen from './screens/Import'
 import Settings from './screens/Settings'
 import Toast, { ToastCtx, useToastState } from './components/Toast'
 import { scheduleDailyReminder } from './lib/reminder'
+import { Icon, type IconName } from './components/Icon'
 
 export type View = 'home' | 'quiz' | 'exam' | 'dashboard' | 'import' | 'settings'
 
@@ -19,7 +20,7 @@ function applyTheme(mode: 'auto' | 'light' | 'dark') {
   }
   root.setAttribute('data-theme', resolved)
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', resolved === 'dark' ? '#0b1220' : '#f5f7fa')
+  if (meta) meta.setAttribute('content', resolved === 'dark' ? '#0a1122' : '#f7f9fd')
 }
 
 export default function App() {
@@ -68,11 +69,11 @@ export default function App() {
 
         {view !== 'quiz' && view !== 'exam' && (
           <nav className="nav">
-            <NavBtn label="ホーム" icon="🏠" active={view === 'home'} onClick={() => go('home')} />
-            <NavBtn label="学習" icon="⚡" active={false} onClick={() => startQuiz({})} />
-            <NavBtn label="成績" icon="📊" active={view === 'dashboard'} onClick={() => go('dashboard')} />
-            <NavBtn label="取込" icon="📥" active={view === 'import'} onClick={() => go('import')} />
-            <NavBtn label="設定" icon="⚙️" active={view === 'settings'} onClick={() => go('settings')} />
+            <NavBtn label="ホーム" icon="home" active={view === 'home'} onClick={() => go('home')} />
+            <NavBtn label="学習" icon="bolt" active={false} onClick={() => startQuiz({})} />
+            <NavBtn label="成績" icon="chart" active={view === 'dashboard'} onClick={() => go('dashboard')} />
+            <NavBtn label="取込" icon="import" active={view === 'import'} onClick={() => go('import')} />
+            <NavBtn label="設定" icon="gear" active={view === 'settings'} onClick={() => go('settings')} />
           </nav>
         )}
 
@@ -89,13 +90,15 @@ function NavBtn({
   onClick,
 }: {
   label: string
-  icon: string
+  icon: IconName
   active: boolean
   onClick: () => void
 }) {
   return (
     <button className={active ? 'active' : ''} onClick={onClick}>
-      <span className="ic">{icon}</span>
+      <span className="ic">
+        <Icon name={icon} size={22} strokeWidth={active ? 2 : 1.8} />
+      </span>
       {label}
     </button>
   )

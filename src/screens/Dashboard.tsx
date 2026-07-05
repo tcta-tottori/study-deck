@@ -3,6 +3,7 @@ import { useActivity, useExamResults, useQuestions, useRecordsMap } from '../hoo
 import { boxDistribution, categoryStats, overallAccuracy, passOutlook } from '../lib/stats'
 import { categoryLabel } from '../types'
 import { computeStreak, dayKey } from '../lib/dateutil'
+import { Icon } from '../components/Icon'
 
 export default function Dashboard() {
   const questions = useQuestions()
@@ -49,8 +50,11 @@ export default function Dashboard() {
             <div style={{ fontSize: 40, fontWeight: 800, color: outlook.ok ? 'var(--correct)' : 'var(--accent)' }}>
               {outlook.pct}%
             </div>
-            <div className="chip" style={{ background: 'var(--surface-2)' }}>
-              🔥 連続{streak}日
+            <div
+              className="chip"
+              style={{ background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', gap: 5 }}
+            >
+              <Icon name="flame" size={14} /> 連続{streak}日
             </div>
           </div>
           <div className="progress" style={{ marginTop: 8 }}>

@@ -7,6 +7,7 @@ import { getSettings } from '../db/db'
 import { categoryLabel, type Question } from '../types'
 import { formatClock } from '../lib/dateutil'
 import { useToast } from '../components/Toast'
+import { Icon } from '../components/Icon'
 
 export interface QuizConfig {
   limit?: number
@@ -318,8 +319,13 @@ function Explanation({
         <button className="btn primary" onClick={onNext}>
           次へ →
         </button>
-        <button className="btn sm" onClick={() => setShowNote((v) => !v)}>
-          📝
+        <button
+          className="btn sm"
+          aria-label="メモ"
+          style={{ display: 'inline-flex', alignItems: 'center' }}
+          onClick={() => setShowNote((v) => !v)}
+        >
+          <Icon name="pencil" size={18} />
         </button>
         {hasKey && !ai && (
           <button className="btn sm" onClick={genAi} disabled={aiLoading}>

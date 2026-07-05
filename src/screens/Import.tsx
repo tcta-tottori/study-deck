@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { CSV_TEMPLATE, importFromCsv, importFromJson, type ImportReport } from '../db/importQuestions'
 import { useQuestions } from '../hooks/useAppData'
 import { useToast } from '../components/Toast'
+import { Icon } from '../components/Icon'
 
 export default function ImportScreen() {
   const toast = useToast()
@@ -64,8 +65,12 @@ export default function ImportScreen() {
             onChange={onFile}
             style={{ display: 'none' }}
           />
-          <button className="btn primary" onClick={() => fileRef.current?.click()}>
-            📁 ファイルを選択
+          <button
+            className="btn primary"
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            onClick={() => fileRef.current?.click()}
+          >
+            <Icon name="import" size={18} /> ファイルを選択
           </button>
           <button className="btn ghost" style={{ marginTop: 10 }} onClick={downloadTemplate}>
             CSVテンプレートをダウンロード
