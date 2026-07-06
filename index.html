@@ -6,13 +6,109 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/study-deck/favicon-32.png" />
     <link rel="apple-touch-icon" href="/study-deck/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#f7f9fd" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>生産管理プランニング3級 学習</title>
+    <style>
+      /* JSが読み込まれる前から即表示する起動ローダー（白基調・本のページめくり） */
+      #boot {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        background: #f7f9fd;
+        font-family: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      }
+      #boot .bl-logo {
+        width: 84px;
+        height: 84px;
+        border-radius: 20px;
+        box-shadow: 0 6px 20px rgba(18, 38, 90, 0.14);
+      }
+      #boot .bl-text {
+        font-size: 14px;
+        color: #7b869b;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .bookflip {
+        perspective: 340px;
+        width: 66px;
+        height: 48px;
+      }
+      .bookflip .bk {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+      }
+      .bookflip .h,
+      .bookflip .pg {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        width: 50%;
+        background: #fff;
+        border: 2px solid #2347c5;
+        box-sizing: border-box;
+      }
+      .bookflip .h.l {
+        left: 0;
+        border-right: none;
+        border-radius: 6px 0 0 6px;
+      }
+      .bookflip .h.r {
+        right: 0;
+        border-left: none;
+        border-radius: 0 6px 6px 0;
+      }
+      .bookflip .pg {
+        left: 50%;
+        border-left: none;
+        border-radius: 0 6px 6px 0;
+        transform-origin: left center;
+        backface-visibility: hidden;
+        animation: bkflip 1.5s infinite ease-in-out;
+      }
+      .bookflip .pg:nth-child(3) {
+        animation-delay: 0.28s;
+        opacity: 0.85;
+      }
+      .bookflip .pg:nth-child(4) {
+        animation-delay: 0.56s;
+        opacity: 0.7;
+      }
+      @keyframes bkflip {
+        0% {
+          transform: rotateY(0deg);
+        }
+        55%,
+        100% {
+          transform: rotateY(-162deg);
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="boot">
+        <img class="bl-logo" src="/study-deck/pwa-192.png" alt="" width="84" height="84" />
+        <div class="bookflip">
+          <div class="bk">
+            <span class="h l"></span>
+            <span class="h r"></span>
+            <span class="pg"></span>
+            <span class="pg"></span>
+            <span class="pg"></span>
+          </div>
+        </div>
+        <div class="bl-text">読み込み中…</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
