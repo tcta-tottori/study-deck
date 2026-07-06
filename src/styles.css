@@ -95,6 +95,48 @@ button {
   position: relative;
 }
 
+/* --- 横画面モード（UIを90°回転して強制横表示。自動回転ではない） --- */
+/* 非横のときはラッパーを無効化（通常レイアウトのまま） */
+.rot {
+  display: contents;
+}
+.rot-on {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100dvh;
+  height: 100dvw;
+  overflow: hidden;
+  transform-origin: 0 0;
+  transform: translateX(100dvw) rotate(90deg);
+  background: var(--bg);
+  z-index: 0;
+}
+.rot-on .app {
+  max-width: none;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+/* 横画面では下ナビ・ヒーロー幅を全幅に */
+.rot-on .nav {
+  max-width: none;
+}
+/* 横画面では余白を詰めて横に広く使う */
+.rot-on .screen {
+  padding-left: 28px;
+  padding-right: 28px;
+}
+.rot-on .tiles {
+  gap: 14px;
+}
+/* 横画面では画面高さは回転フレーム（=.app）基準に。100dvhの縦長化を防ぐ */
+.rot-on .quiz {
+  min-height: 100%;
+}
+
 /* --- App bar --- */
 .appbar {
   padding: calc(var(--safe-t) + 14px) 20px 6px;

@@ -91,6 +91,7 @@ export interface AppSettings {
   interleave: boolean
   examDurationSec: number
   examDate: string // 試験日 "YYYY-MM-DD"（ホームのカウントダウン用）
+  landscape: boolean // 横画面モード（UIを回転して強制横表示。自動回転ではない）
   reminderTime?: string // "HH:MM" ローカル通知
   theme: 'auto' | 'light' | 'dark'
   anthropicApiKey?: string // 端末ローカル保存・非コミット
