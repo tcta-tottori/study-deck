@@ -1,32 +1,39 @@
 import { useMemo } from 'react'
-import { useActivity, useExamResults, useQuestions, useRecordsMap } from '../hooks/useAppData'
+import { useExamResults } from '../hooks/useAppData'
 import { boxDistribution, categoryStats, overallAccuracy, passOutlook } from '../lib/stats'
-import { categoryLabel } from '../types'
+import { categoryLabel, type Question, type StudyRecord } from '../types'
+import type { DayActivity } from '../db/db'
 import { computeStreak, dayKey } from '../lib/dateutil'
 import { Icon } from '../components/Icon'
 
-export default function Dashboard() {
-  const questions = useQuestions()
-  const records = useRecordsMap()
-  const activity = useActivity()
+// データは App 側で読込済みのものを props で受け取る。
+// （Dashboard 自身で live query を張り直すと、回答直後の書込みと競合して
+//  「読み込み中…」のまま止まることがあったため、二重購読をやめる）
+export default function Dashboard({
+  questions,
+  records,
+  activity,
+}: {
+  questions: Question[]
+  records: Map<string, StudyRecord>
+  activity: DayActivity[]
+}) {
   const exams = useExamResults()
 
   const now = Date.now()
-  const data = useMemo(() => {
-    if (!questions || !records) return null
-    return {
+  const data = useMemo(
+    () => ({
       cats: categoryStats(questions, records),
       boxes: boxDistribution(questions, records),
       acc: overallAccuracy(records),
-    }
-  }, [questions, records])
-
-  const streak = useMemo(
-    () => computeStreak(new Set((activity ?? []).map((a) => a.day)), dayKey(now)),
-    [activity, now],
+    }),
+    [questions, records],
   )
 
-  if (!data) return <div className="screen"><div className="empty">読み込み中…</div></div>
+  const streak = useMemo(
+    () => computeStreak(new Set(activity.map((a) => a.day)), dayKey(now)),
+    [activity, now],
+  )
 
   const outlook = passOutlook(data.acc)
   const totalAnswered = data.cats.reduce((s, c) => s + c.answered, 0)
