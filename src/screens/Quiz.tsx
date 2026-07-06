@@ -9,6 +9,7 @@ import { categoryColor } from '../lib/categoryMap'
 import { formatClock } from '../lib/dateutil'
 import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
+import { BrandIcon } from '../components/BrandIcon'
 import { useTodayProgress } from '../hooks/useAppData'
 import { buildAiPrompt, aiServiceUrl, copyText, AI_SERVICES, type AiService } from '../lib/askAi'
 
@@ -171,7 +172,7 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
           <button className="quiz-exit" onClick={onExit}>
             × 終了
           </button>
-          <span>{answeredCount + 1}問目</span>
+          <span className="quiz-qno">{answeredCount + 1}問目</span>
           {config.timeboxSec ? (
             <span className={`exam-timer ${remaining <= 30 ? 'danger' : ''}`}>
               {formatClock(remaining)}
@@ -327,7 +328,14 @@ function Explanation({
             </span>
           )}
         </div>
-        {question.explanation && <p>{question.explanation}</p>}
+        {/* アプリ内の回答表示：解説が無い問題でも必ず正解を提示する */}
+        <div className="answer">
+          <span className="answer-label">正解</span>
+          <span className="answer-choice">
+            {CHOICE_LETTERS[question.answerIndex]}．{question.choices[question.answerIndex]}
+          </span>
+        </div>
+        {question.explanation && <p className="answer-exp">{question.explanation}</p>}
 
         {/* AIアプリで詳しい解説を確認（API不要・アプリ/サイトを開いて質問） */}
         <div className="ai-ask">
@@ -337,7 +345,8 @@ function Explanation({
           </div>
           <div className="ai-ask-btns">
             {AI_SERVICES.map((s) => (
-              <button key={s.key} className="ai-chip" onClick={() => askAi(s.key)}>
+              <button key={s.key} className={`ai-chip brand-${s.key}`} onClick={() => askAi(s.key)}>
+                <BrandIcon name={s.key} size={16} />
                 {s.label}
               </button>
             ))}
