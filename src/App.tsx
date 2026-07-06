@@ -36,6 +36,12 @@ export default function App() {
   const toast = useToastState()
   // 横画面は即時反映のためローカル状態で持ち、設定にも保存
   const [landscape, setLandscapeState] = useState(false)
+  // ローディングのタイムアウト保険（詰まっても数秒でアプリ表示へ）
+  const [bailout, setBailout] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setBailout(true), 6000)
+    return () => clearTimeout(t)
+  }, [])
 
   // テーマ適用（設定 + システム変更を追従）
   useEffect(() => {
@@ -75,9 +81,13 @@ export default function App() {
 
   const go = useCallback((v: View) => setView(v), [])
 
-  // 初期データが揃うまではローディング表示（数値の0ちらつき防止）
+  // 初期データが揃うまではローディング表示（数値の0ちらつき防止）。
+  // 万一データ取得が詰まっても数秒でアプリ表示へ移行し、無限ローディングを防ぐ。
   const ready = questions !== undefined && records !== undefined && activity !== undefined
-  if (!ready) return <Loading />
+  if (!ready && !bailout) return <Loading />
+  const safeQuestions = questions ?? []
+  const safeRecords = records ?? new Map()
+  const safeActivity = activity ?? []
 
   return (
     <ToastCtx.Provider value={toast.show}>
@@ -88,9 +98,9 @@ export default function App() {
             onStartQuiz={startQuiz}
             go={go}
             settings={settings}
-            questions={questions}
-            records={records}
-            activity={activity}
+            questions={safeQuestions}
+            records={safeRecords}
+            activity={safeActivity}
             landscape={landscape}
             setLandscape={setLandscape}
           />
