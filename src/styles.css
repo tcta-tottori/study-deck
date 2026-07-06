@@ -136,6 +136,17 @@ button {
 .rot-on .quiz {
   min-height: 100%;
 }
+/* ★横画面のカクつき対策：回転レイヤー内での backdrop-filter は極端に重いので無効化し、
+   不透明背景に置き換える。スクロールコンテナは paint を封じ込めて再描画コストを下げる。 */
+.rot-on .appbar,
+.rot-on .nav {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--surface);
+}
+.rot-on .app {
+  contain: paint;
+}
 
 /* --- App bar --- */
 .appbar {
@@ -961,4 +972,41 @@ svg.line {
   width: 100%;
   height: auto;
   display: block;
+}
+
+/* --- Loading --- */
+.loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: var(--bg);
+  z-index: 100;
+}
+.loading-logo {
+  width: 88px;
+  height: 88px;
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+.loading-text {
+  font-size: 14px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.spinner {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid var(--surface-2);
+  border-top-color: var(--primary);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
