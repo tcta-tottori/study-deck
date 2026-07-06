@@ -5,6 +5,7 @@ import { categoryLabel, type Question, type StudyRecord } from '../types'
 import type { DayActivity } from '../db/db'
 import { computeStreak, dayKey } from '../lib/dateutil'
 import { Icon } from '../components/Icon'
+import Reveal from '../components/Reveal'
 
 // データは App 側で読込済みのものを props で受け取る。
 // （Dashboard 自身で live query を張り直すと、回答直後の書込みと競合して
@@ -51,71 +52,79 @@ export default function Dashboard({
         )}
 
         {/* 合格ライン到達予測 */}
-        <div className="card">
-          <h2>合格ライン到達予測（60%）</h2>
-          <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <div style={{ fontSize: 40, fontWeight: 800, color: outlook.ok ? 'var(--correct)' : 'var(--accent)' }}>
-              {outlook.pct}%
+        <Reveal>
+          <div className="card">
+            <h2>合格ライン到達予測（60%）</h2>
+            <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <div style={{ fontSize: 40, fontWeight: 800, color: outlook.ok ? 'var(--correct)' : 'var(--accent)' }}>
+                {outlook.pct}%
+              </div>
+              <div
+                className="chip"
+                style={{ background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', gap: 5 }}
+              >
+                <Icon name="flame" size={14} /> 連続{streak}日
+              </div>
             </div>
-            <div
-              className="chip"
-              style={{ background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', gap: 5 }}
-            >
-              <Icon name="flame" size={14} /> 連続{streak}日
+            <div className="progress" style={{ marginTop: 8 }}>
+              <span style={{ width: `${Math.min(100, outlook.pct)}%`, background: outlook.ok ? 'var(--correct)' : 'var(--accent)' }} />
             </div>
+            <p className="muted" style={{ marginTop: 8 }}>{outlook.label}</p>
           </div>
-          <div className="progress" style={{ marginTop: 8 }}>
-            <span style={{ width: `${Math.min(100, outlook.pct)}%`, background: outlook.ok ? 'var(--correct)' : 'var(--accent)' }} />
-          </div>
-          <p className="muted" style={{ marginTop: 8 }}>{outlook.label}</p>
-        </div>
+        </Reveal>
 
         {/* カテゴリ別正答率 */}
-        <div className="card">
-          <h2>カテゴリ別正答率</h2>
-          {data.cats.length === 0 && <p className="muted">データなし</p>}
-          {data.cats.map((c) => {
-            const pct = Math.round(c.accuracy * 100)
-            return (
-              <div className="bar-item" key={c.category}>
-                <div className="bar-head">
-                  <span>{categoryLabel(c.category)}</span>
-                  <span className="muted">
-                    {c.answered > 0 ? `${pct}%` : '未学習'}（{c.answered}/{c.total}）
-                  </span>
+        <Reveal>
+          <div className="card">
+            <h2>カテゴリ別正答率</h2>
+            {data.cats.length === 0 && <p className="muted">データなし</p>}
+            {data.cats.map((c) => {
+              const pct = Math.round(c.accuracy * 100)
+              return (
+                <div className="bar-item" key={c.category}>
+                  <div className="bar-head">
+                    <span>{categoryLabel(c.category)}</span>
+                    <span className="muted">
+                      {c.answered > 0 ? `${pct}%` : '未学習'}（{c.answered}/{c.total}）
+                    </span>
+                  </div>
+                  <div className="bar-track">
+                    <div
+                      className="bar-fill"
+                      style={{
+                        width: `${c.answered > 0 ? pct : 0}%`,
+                        background: pct >= 60 ? 'var(--correct)' : pct >= 40 ? 'var(--accent)' : 'var(--wrong)',
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="bar-track">
-                  <div
-                    className="bar-fill"
-                    style={{
-                      width: `${c.answered > 0 ? pct : 0}%`,
-                      background: pct >= 60 ? 'var(--correct)' : pct >= 40 ? 'var(--accent)' : 'var(--wrong)',
-                    }}
-                  />
-                </div>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        </Reveal>
 
         {/* box分布 */}
-        <div className="card">
-          <h2>定着度（Leitner box分布）</h2>
-          <BoxDist dist={data.boxes} />
-          <p className="muted" style={{ marginTop: 6 }}>
-            左ほど苦手（box1）、右ほど定着（box5）。未学習は含みません。
-          </p>
-        </div>
+        <Reveal>
+          <div className="card">
+            <h2>定着度（Leitner box分布）</h2>
+            <BoxDist dist={data.boxes} />
+            <p className="muted" style={{ marginTop: 6 }}>
+              左ほど苦手（box1）、右ほど定着（box5）。未学習は含みません。
+            </p>
+          </div>
+        </Reveal>
 
         {/* 模試スコア推移 */}
-        <div className="card">
-          <h2>模試スコア推移</h2>
-          {exams && exams.length > 0 ? (
-            <ScoreTrend scores={exams.map((e) => e.score)} />
-          ) : (
-            <p className="muted">本番シミュレーションを受けると推移が表示されます。</p>
-          )}
-        </div>
+        <Reveal>
+          <div className="card">
+            <h2>模試スコア推移</h2>
+            {exams && exams.length > 0 ? (
+              <ScoreTrend scores={exams.map((e) => e.score)} />
+            ) : (
+              <p className="muted">本番シミュレーションを受けると推移が表示されます。</p>
+            )}
+          </div>
+        </Reveal>
       </div>
     </>
   )
@@ -133,6 +142,7 @@ function BoxDist({ dist }: { dist: number[] }) {
           <div key={b} style={{ flex: 1, textAlign: 'center' }}>
             <div style={{ height: 90, display: 'flex', alignItems: 'flex-end' }}>
               <div
+                className="box-bar"
                 style={{
                   width: '100%',
                   height: `${Math.max(4, h)}%`,

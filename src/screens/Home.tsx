@@ -7,6 +7,7 @@ import { categoryLabel, type AppSettings, type Question, type StudyRecord } from
 import type { DayActivity } from '../db/db'
 import { categoryColor } from '../lib/categoryMap'
 import { Icon } from '../components/Icon'
+import Reveal from '../components/Reveal'
 
 export default function Home({
   onStartQuiz,
@@ -106,6 +107,7 @@ export default function Home({
         </button>
 
         {/* ヒーローカード（今日の学習 + ワンタップ開始） */}
+        <Reveal>
         <section className="hero">
           <div className="hero-top">
             <span>今日の学習</span>
@@ -146,11 +148,13 @@ export default function Home({
             </div>
           </div>
         </section>
+        </Reveal>
 
         {/* 本番シミュレーション（商品カード風） */}
         <div className="sec-head">
           <h2>試験対策</h2>
         </div>
+        <Reveal>
         <div className="prodcard">
           <div className="pc-title">
             <span className="pc-ic">
@@ -167,12 +171,14 @@ export default function Home({
             開始する
           </button>
         </div>
+        </Reveal>
 
         {/* カテゴリ別（正答率つき・タップでそのカテゴリを出題） */}
         <div className="sec-head">
           <h2>カテゴリ別に学習</h2>
           <span className="muted">タップで出題</span>
         </div>
+        <Reveal>
         <div className="catlist">
           {catSorted.map((c) => {
             const pct = Math.round(c.accuracy * 100)
@@ -204,6 +210,7 @@ export default function Home({
             )
           })}
         </div>
+        </Reveal>
       </div>
     </>
   )
