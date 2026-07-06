@@ -1,45 +1,52 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import type { View } from '../App'
 import type { QuizConfig } from './Quiz'
-import { useActivity, useQuestions, useRecordsMap, useSettings } from '../hooks/useAppData'
-import { updateSettings } from '../db/db'
 import { computeStreak, dayKey, daysUntil, formatJpDate } from '../lib/dateutil'
 import { categoryStats, dueCount, overallAccuracy } from '../lib/stats'
-import { categoryLabel } from '../types'
+import { categoryLabel, type AppSettings, type Question, type StudyRecord } from '../types'
+import type { DayActivity } from '../db/db'
 import { Icon } from '../components/Icon'
 
 export default function Home({
   onStartQuiz,
   go,
+  settings,
+  questions,
+  records,
+  activity,
+  landscape,
+  setLandscape,
 }: {
   onStartQuiz: (cfg: QuizConfig) => void
   go: (v: View) => void
+  settings: AppSettings
+  questions: Question[]
+  records: Map<string, StudyRecord>
+  activity: DayActivity[]
+  landscape: boolean
+  setLandscape: (v: boolean) => void
 }) {
-  const settings = useSettings()
-  const questions = useQuestions()
-  const records = useRecordsMap()
-  const activity = useActivity()
-  const landscape = !!settings?.landscape
-
-  const now = Date.now()
+  // now は初回マウント時に1回だけ確定（毎レンダーでの再計算/ちらつきを防ぐ）
+  const nowRef = useRef(Date.now())
+  const now = nowRef.current
   const todayKey = dayKey(now)
 
   const { streak, todayCount, due, acc, cats } = useMemo(() => {
-    const days = new Set((activity ?? []).map((a) => a.day))
-    const today = (activity ?? []).find((a) => a.day === todayKey)
+    const days = new Set(activity.map((a) => a.day))
+    const today = activity.find((a) => a.day === todayKey)
     return {
       streak: computeStreak(days, todayKey),
       todayCount: today?.count ?? 0,
-      due: records ? dueCount(records, now) : 0,
-      acc: records ? overallAccuracy(records) : 0,
-      cats: questions && records ? categoryStats(questions, records) : [],
+      due: dueCount(records, now),
+      acc: overallAccuracy(records),
+      cats: categoryStats(questions, records),
     }
   }, [activity, records, questions, todayKey, now])
 
-  const goal = settings?.dailyGoal ?? 20
+  const goal = settings.dailyGoal
   const goalPct = Math.min(100, Math.round((todayCount / goal) * 100))
 
-  const examDate = settings?.examDate ?? '2026-10-04'
+  const examDate = settings.examDate
   const daysLeft = daysUntil(examDate, now)
 
   const weak = [...cats]
@@ -62,10 +69,10 @@ export default function Home({
 
       <div className="screen">
         <div className="seg" role="tablist" aria-label="画面の向き">
-          <button className={!landscape ? 'on' : ''} onClick={() => updateSettings({ landscape: false })}>
+          <button className={!landscape ? 'on' : ''} onClick={() => setLandscape(false)}>
             縦画面
           </button>
-          <button className={landscape ? 'on' : ''} onClick={() => updateSettings({ landscape: true })}>
+          <button className={landscape ? 'on' : ''} onClick={() => setLandscape(true)}>
             横画面
           </button>
         </div>

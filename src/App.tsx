@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
-import { useSettings } from './hooks/useAppData'
+import { useSettings, useQuestions, useRecordsMap, useActivity } from './hooks/useAppData'
+import { updateSettings } from './db/db'
 import Home from './screens/Home'
 import Quiz, { type QuizConfig } from './screens/Quiz'
 import Exam from './screens/Exam'
@@ -7,6 +8,7 @@ import Dashboard from './screens/Dashboard'
 import ImportScreen from './screens/Import'
 import Settings from './screens/Settings'
 import Toast, { ToastCtx, useToastState } from './components/Toast'
+import Loading from './components/Loading'
 import { scheduleDailyReminder } from './lib/reminder'
 import { Icon, type IconName } from './components/Icon'
 
@@ -25,9 +27,15 @@ function applyTheme(mode: 'auto' | 'light' | 'dark') {
 
 export default function App() {
   const settings = useSettings()
+  // データ取得は App 側に集約（画面遷移で再取得＝数値が一瞬0になるちらつきを防ぐ）
+  const questions = useQuestions()
+  const records = useRecordsMap()
+  const activity = useActivity()
   const [view, setView] = useState<View>('home')
   const [quizConfig, setQuizConfig] = useState<QuizConfig>({})
   const toast = useToastState()
+  // 横画面は即時反映のためローカル状態で持ち、設定にも保存
+  const [landscape, setLandscapeState] = useState(false)
 
   // テーマ適用（設定 + システム変更を追従）
   useEffect(() => {
@@ -50,6 +58,16 @@ export default function App() {
     return cleanup
   }, [settings?.reminderTime, toast])
 
+  // 設定側の landscape 値をローカルへ同期（他タブ/初回ロード反映）
+  useEffect(() => {
+    setLandscapeState(!!settings?.landscape)
+  }, [settings?.landscape])
+
+  const setLandscape = useCallback((v: boolean) => {
+    setLandscapeState(v) // 画面は即座に切替
+    void updateSettings({ landscape: v }) // 永続化は非同期で追随
+  }, [])
+
   const startQuiz = useCallback((cfg: QuizConfig) => {
     setQuizConfig(cfg)
     setView('quiz')
@@ -57,13 +75,26 @@ export default function App() {
 
   const go = useCallback((v: View) => setView(v), [])
 
-  const landscape = !!settings?.landscape
+  // 初期データが揃うまではローディング表示（数値の0ちらつき防止）
+  const ready = questions !== undefined && records !== undefined && activity !== undefined
+  if (!ready) return <Loading />
 
   return (
     <ToastCtx.Provider value={toast.show}>
       <div className={`rot${landscape ? ' rot-on' : ''}`}>
         <div className="app">
-        {view === 'home' && <Home onStartQuiz={startQuiz} go={go} />}
+        {view === 'home' && (
+          <Home
+            onStartQuiz={startQuiz}
+            go={go}
+            settings={settings}
+            questions={questions}
+            records={records}
+            activity={activity}
+            landscape={landscape}
+            setLandscape={setLandscape}
+          />
+        )}
         {view === 'quiz' && <Quiz config={quizConfig} onExit={() => setView('home')} />}
         {view === 'exam' && <Exam onExit={() => setView('home')} />}
         {view === 'dashboard' && <Dashboard />}
