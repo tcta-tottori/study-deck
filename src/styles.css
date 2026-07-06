@@ -724,13 +724,46 @@ button {
   display: block;
   height: 100%;
   border-radius: 999px;
-  transition: width 0.35s;
+  /* 0→現在値をゆったり伸ばす。回答ごとの増分もこのイージングで滑らかに追従 */
+  transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .goalmeter-label {
   font-size: 11px;
   color: var(--text-dim);
   font-weight: 700;
   margin-top: 5px;
+}
+/* フローティングウィンドウ版：コンテンツの上に浮くカードとして表示 */
+.goalmeter.floating {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  /* 表示時にふわっと浮き上がる */
+  animation: goalfloat 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.goalmeter.floating .goalmeter-label {
+  margin-top: 0;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.goalmeter.floating .goalmeter-bar {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+@keyframes goalfloat {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 .stem {
   font-size: 19px;

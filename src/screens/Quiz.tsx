@@ -224,19 +224,37 @@ function ResultLike({ title, children }: { title: string; children: React.ReactN
   )
 }
 
-/** 回答中に今日の目標達成度をリアルタイム表示（回答するたび更新） */
+/** 回答中に今日の目標達成度をフローティングウィンドウでリアルタイム表示（回答するたび更新） */
 function GoalMeter() {
   const { count, goal } = useTodayProgress()
   const pct = Math.min(100, Math.round((count / goal) * 100))
   const done = count >= goal
+  // 表示直後は幅0から始め、次フレームで現在値へ遷移させて「0→現在」をスムーズに伸ばす
+  const [grown, setGrown] = useState(false)
+  useEffect(() => {
+    let inner = 0
+    // 幅0%の初期描画が確定してから現在値へ切り替える（二重rAFで確実にトランジションを発火）
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setGrown(true))
+    })
+    return () => {
+      cancelAnimationFrame(outer)
+      cancelAnimationFrame(inner)
+    }
+  }, [])
   return (
-    <div className="goalmeter">
-      <div className="goalmeter-bar">
-        <span style={{ width: `${pct}%`, background: done ? 'var(--correct)' : 'var(--primary)' }} />
-      </div>
+    <div className="goalmeter floating">
       <div className="goalmeter-label">
         今日の目標 {count}/{goal}
         {done && ' 達成🎉'}
+      </div>
+      <div className="goalmeter-bar">
+        <span
+          style={{
+            width: grown ? `${pct}%` : '0%',
+            background: done ? 'var(--correct)' : 'var(--primary)',
+          }}
+        />
       </div>
     </div>
   )
