@@ -31,6 +31,9 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
   const [remaining, setRemaining] = useState(config.timeboxSec ?? 0)
   const [timeUp, setTimeUp] = useState(false)
   const touchStartX = useRef<number | null>(null)
+  // 採点の二重実行ガード（setChosen は非同期のため、連打で recordAnswer が
+  // 2回走り回答数が実際より増える不具合を同期的に防ぐ）
+  const answeringRef = useRef(false)
 
   // 起動時にキューをスナップショット構築（即表示：ゼロ摩擦）
   useEffect(() => {
@@ -75,7 +78,8 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
   const answered = chosen !== null
 
   async function choose(i: number) {
-    if (answered || !current) return
+    if (answered || answeringRef.current || !current) return
+    answeringRef.current = true
     setChosen(i)
     const correct = await recordAnswer(current, i)
     setAnsweredCount((c) => c + 1)
@@ -86,6 +90,7 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
   }
 
   function next() {
+    answeringRef.current = false
     setChosen(null)
     setBox(null)
     setIdx((i) => i + 1)
@@ -171,7 +176,7 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
               {formatClock(remaining)}
             </span>
           ) : (
-            <span className="chip" style={{ background: `${catCol}22`, color: catCol }}>
+            <span className="chip cat" style={{ background: catCol, color: '#fff' }}>
               {categoryLabel(current.category)}
             </span>
           )}
@@ -229,19 +234,14 @@ function GoalMeter() {
   const { count, goal } = useTodayProgress()
   const pct = Math.min(100, Math.round((count / goal) * 100))
   const done = count >= goal
-  // 表示直後は幅0から始め、次フレームで現在値へ遷移させて「0→現在」をスムーズに伸ばす
+  // 表示直後は幅0で描画し、少し置いてから現在値へ切り替えて「0→現在」を滑らかに伸ばす。
+  // フローティングウィンドウの出現アニメの後にゲージが伸びるよう、わずかに遅延させて段階的に見せる。
   const [grown, setGrown] = useState(false)
   useEffect(() => {
-    let inner = 0
-    // 幅0%の初期描画が確定してから現在値へ切り替える（二重rAFで確実にトランジションを発火）
-    const outer = requestAnimationFrame(() => {
-      inner = requestAnimationFrame(() => setGrown(true))
-    })
-    return () => {
-      cancelAnimationFrame(outer)
-      cancelAnimationFrame(inner)
-    }
+    const t = setTimeout(() => setGrown(true), 260)
+    return () => clearTimeout(t)
   }, [])
+  const width = grown ? `${pct}%` : '0%'
   return (
     <div className="goalmeter floating">
       <div className="goalmeter-label">
@@ -249,12 +249,7 @@ function GoalMeter() {
         {done && ' 達成🎉'}
       </div>
       <div className="goalmeter-bar">
-        <span
-          style={{
-            width: grown ? `${pct}%` : '0%',
-            background: done ? 'var(--correct)' : 'var(--primary)',
-          }}
-        />
+        <span style={{ width, background: done ? 'var(--correct)' : 'var(--primary)' }} />
       </div>
     </div>
   )
