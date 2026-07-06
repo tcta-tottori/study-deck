@@ -5,6 +5,7 @@ import { computeStreak, dayKey, daysUntil, formatJpDate } from '../lib/dateutil'
 import { categoryStats, dueCount, overallAccuracy } from '../lib/stats'
 import { categoryLabel, type AppSettings, type Question, type StudyRecord } from '../types'
 import type { DayActivity } from '../db/db'
+import { categoryColor } from '../lib/categoryMap'
 import { Icon } from '../components/Icon'
 
 export default function Home({
@@ -176,27 +177,25 @@ export default function Home({
           {catSorted.map((c) => {
             const pct = Math.round(c.accuracy * 100)
             const answered = c.answered > 0
-            const color = !answered
-              ? 'var(--surface-2)'
-              : pct >= 60
-                ? 'var(--correct)'
-                : pct >= 40
-                  ? 'var(--accent)'
-                  : 'var(--wrong)'
+            const col = categoryColor(c.category) // カテゴリ識別カラー
             return (
               <button
                 key={c.category}
                 className="cat-row"
+                style={{ borderLeft: `5px solid ${col}` }}
                 onClick={() => onStartQuiz({ categories: [c.category], limit: 10 })}
               >
                 <div className="cat-top">
-                  <span className="cat-name">{categoryLabel(c.category)}</span>
-                  <span className="cat-acc" style={{ color: answered ? color : 'var(--text-dim)' }}>
+                  <span className="cat-name">
+                    <span className="cat-dot" style={{ background: col }} />
+                    {categoryLabel(c.category)}
+                  </span>
+                  <span className="cat-acc" style={{ color: answered ? col : 'var(--text-dim)' }}>
                     {answered ? `${pct}%` : '未学習'}
                   </span>
                 </div>
                 <div className="cat-bar">
-                  <span style={{ width: `${answered ? pct : 0}%`, background: color }} />
+                  <span style={{ width: `${answered ? pct : 0}%`, background: col }} />
                 </div>
                 <div className="cat-sub">
                   学習 {c.answered}/{c.total}問{answered ? ` ・ 正解${c.correct}・誤答${c.wrong}` : ''}

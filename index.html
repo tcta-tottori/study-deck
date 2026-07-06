@@ -23,28 +23,34 @@
         background: #f7f9fd;
         font-family: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
       }
-      #boot .bl-logo {
-        width: 84px;
-        height: 84px;
-        border-radius: 20px;
-        box-shadow: 0 6px 20px rgba(18, 38, 90, 0.14);
-      }
       #boot .bl-text {
         font-size: 14px;
         color: #7b869b;
         font-weight: 600;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.04em;
+        animation: blink 1.3s infinite ease-in-out;
       }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.28;
+        }
+      }
+      /* 3D的な本のページめくり */
       .bookflip {
-        perspective: 340px;
-        width: 66px;
-        height: 48px;
+        perspective: 260px;
+        width: 92px;
+        height: 68px;
       }
       .bookflip .bk {
         position: relative;
         width: 100%;
         height: 100%;
         transform-style: preserve-3d;
+        transform: rotateX(24deg);
       }
       .bookflip .h,
       .bookflip .pg {
@@ -52,43 +58,45 @@
         top: 0;
         height: 100%;
         width: 50%;
-        background: #fff;
-        border: 2px solid #2347c5;
         box-sizing: border-box;
+        border: 2px solid #2347c5;
       }
       .bookflip .h.l {
         left: 0;
         border-right: none;
-        border-radius: 6px 0 0 6px;
+        border-radius: 7px 0 0 7px;
+        background: linear-gradient(90deg, #eef2fb, #fff);
       }
       .bookflip .h.r {
         right: 0;
         border-left: none;
-        border-radius: 0 6px 6px 0;
+        border-radius: 0 7px 7px 0;
+        background: linear-gradient(90deg, #fff, #eef2fb);
       }
       .bookflip .pg {
         left: 50%;
-        border-left: none;
-        border-radius: 0 6px 6px 0;
         transform-origin: left center;
+        transform-style: preserve-3d;
         backface-visibility: hidden;
-        animation: bkflip 1.5s infinite ease-in-out;
+        border-left: none;
+        border-radius: 0 7px 7px 0;
+        background: linear-gradient(90deg, #fff, #dfe7f7);
+        box-shadow: 2px 0 8px rgba(18, 38, 90, 0.18);
+        animation: bkflip 1.6s infinite ease-in-out;
       }
       .bookflip .pg:nth-child(3) {
-        animation-delay: 0.28s;
-        opacity: 0.85;
+        animation-delay: 0.32s;
       }
       .bookflip .pg:nth-child(4) {
-        animation-delay: 0.56s;
-        opacity: 0.7;
+        animation-delay: 0.64s;
       }
       @keyframes bkflip {
         0% {
           transform: rotateY(0deg);
         }
-        55%,
+        60%,
         100% {
-          transform: rotateY(-162deg);
+          transform: rotateY(-179deg);
         }
       }
     </style>
@@ -96,7 +104,6 @@
   <body>
     <div id="root">
       <div id="boot">
-        <img class="bl-logo" src="/study-deck/pwa-192.png" alt="" width="84" height="84" />
         <div class="bookflip">
           <div class="bk">
             <span class="h l"></span>

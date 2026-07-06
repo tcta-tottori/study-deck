@@ -5,6 +5,7 @@ import { recordAnswer, saveNote, saveAiExplanation } from '../lib/study'
 import { generateExplanation } from '../lib/ai'
 import { getSettings } from '../db/db'
 import { categoryLabel, type Question } from '../types'
+import { categoryColor } from '../lib/categoryMap'
 import { formatClock } from '../lib/dateutil'
 import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
@@ -29,6 +30,7 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
   const [box, setBox] = useState<number | null>(null)
   const [remaining, setRemaining] = useState(config.timeboxSec ?? 0)
   const [timeUp, setTimeUp] = useState(false)
+  const touchStartX = useRef<number | null>(null)
 
   // 起動時にキューをスナップショット構築（即表示：ゼロ摩擦）
   useEffect(() => {
@@ -142,118 +144,82 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
     )
   }
 
-  return (
-    <QuizCard
-      key={current.id}
-      question={current}
-      chosen={chosen}
-      box={box}
-      answered={answered}
-      progressText={`${answeredCount + 1}問目`}
-      remainingText={config.timeboxSec ? formatClock(remaining) : undefined}
-      onChoose={choose}
-      onNext={next}
-      onExit={onExit}
-      toast={toast}
-    />
-  )
-}
+  const correct = answered && chosen === current.answerIndex
+  const catCol = categoryColor(current.category)
 
-function ResultLike({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="quiz">
-      <div className="quiz-top">
-        <h1 style={{ fontSize: 20, marginTop: 24 }}>{title}</h1>
-      </div>
-      <div className="quiz-spacer" />
-      <div style={{ padding: '0 4px' }}>{children}</div>
-    </div>
-  )
-}
-
-function QuizCard({
-  question,
-  chosen,
-  box,
-  answered,
-  progressText,
-  remainingText,
-  onChoose,
-  onNext,
-  onExit,
-  toast,
-}: {
-  question: Question
-  chosen: number | null
-  box: number | null
-  answered: boolean
-  progressText: string
-  remainingText?: string
-  onChoose: (i: number) => void
-  onNext: () => void
-  onExit: () => void
-  toast: (m: React.ReactNode) => void
-}) {
-  const correct = answered && chosen === question.answerIndex
-  const touchStartX = useRef<number | null>(null)
-
-  // 採点後のみスワイプで次へ（採点前のスワイプは無効＝誤爆防止）
   function onTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX
   }
   function onTouchEnd(e: React.TouchEvent) {
     if (!answered || touchStartX.current === null) return
     const dx = e.changedTouches[0].clientX - touchStartX.current
-    if (dx < -60) onNext() // 左スワイプで次へ
+    if (dx < -60) next() // 採点後のみ左スワイプで次へ
     touchStartX.current = null
   }
 
   return (
     <div className="quiz" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      {/* 上部：固定（終了・進捗・カテゴリ・今日の目標バー） */}
       <div className="quiz-top">
         <div className="quiz-meta">
           <button className="quiz-exit" onClick={onExit}>
             × 終了
           </button>
-          <span>{progressText}</span>
-          {remainingText ? (
-            <span className="exam-timer">{remainingText}</span>
+          <span>{answeredCount + 1}問目</span>
+          {config.timeboxSec ? (
+            <span className={`exam-timer ${remaining <= 30 ? 'danger' : ''}`}>
+              {formatClock(remaining)}
+            </span>
           ) : (
-            <span className="chip">{categoryLabel(question.category)}</span>
+            <span className="chip" style={{ background: `${catCol}22`, color: catCol }}>
+              {categoryLabel(current.category)}
+            </span>
           )}
         </div>
         <GoalMeter />
-        <div className="stem">{question.stem}</div>
       </div>
 
-      <div className="quiz-spacer" />
-
-      <div className="choices">
-        {question.choices.map((c, i) => {
-          let cls = 'choice'
-          if (answered) {
-            if (i === question.answerIndex) cls += ' correct'
-            else if (i === chosen) cls += ' wrong'
-            else cls += ' dimmed'
-          }
-          return (
-            <button key={i} className={cls} disabled={answered} onClick={() => onChoose(i)}>
-              <span className="mark">{CHOICE_LETTERS[i]}</span>
-              <span>{c}</span>
-            </button>
-          )
-        })}
+      {/* 中央：問題文＋選択肢（長ければスクロール） */}
+      <div className="quiz-scroll">
+        <div className="stem">{current.stem}</div>
+        <div className="choices">
+          {current.choices.map((c, i) => {
+            let cls = 'choice'
+            if (answered) {
+              if (i === current.answerIndex) cls += ' correct'
+              else if (i === chosen) cls += ' wrong'
+              else cls += ' dimmed'
+            }
+            return (
+              <button key={i} className={cls} disabled={answered} onClick={() => choose(i)}>
+                <span className="mark">{CHOICE_LETTERS[i]}</span>
+                <span>{c}</span>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
+      {/* 下部：解説シート（スクロールせず常に見える） */}
       {answered && (
         <Explanation
-          question={question}
+          key={current.id}
+          question={current}
           correct={correct}
           box={box}
-          onNext={onNext}
+          onNext={next}
           toast={toast}
         />
       )}
+    </div>
+  )
+}
+
+function ResultLike({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="quiz quiz-center">
+      <h1 style={{ fontSize: 20, textAlign: 'center', marginBottom: 8 }}>{title}</h1>
+      <div style={{ padding: '0 4px' }}>{children}</div>
     </div>
   )
 }
@@ -322,18 +288,36 @@ function Explanation({
   }
 
   return (
-    <div className="explain">
-      <div className={`verdict ${correct ? 'ok' : 'ng'}`}>
-        {correct ? '正解！' : '不正解'}
-        {box && <span className="chip box" style={{ marginLeft: 10 }}>box {box}</span>}
+    <div className="quiz-sheet">
+      <div className="sheet-body">
+        <div className={`verdict ${correct ? 'ok' : 'ng'}`}>
+          {correct ? '正解！' : '不正解'}
+          {box && (
+            <span className="chip box" style={{ marginLeft: 10 }}>
+              box {box}
+            </span>
+          )}
+        </div>
+        {question.explanation && <p>{question.explanation}</p>}
+        {ai && (
+          <p style={{ borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+            <strong>AI解説：</strong>
+            {ai}
+          </p>
+        )}
+        {showNote && (
+          <div style={{ marginTop: 10 }}>
+            <textarea
+              placeholder="誤答ノート（自分用メモ）"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+            <button className="btn sm primary" style={{ marginTop: 6 }} onClick={persistNote}>
+              保存
+            </button>
+          </div>
+        )}
       </div>
-      {question.explanation && <p>{question.explanation}</p>}
-      {ai && (
-        <p style={{ borderTop: '1px solid var(--border)', paddingTop: 8 }}>
-          <strong>AI解説：</strong>
-          {ai}
-        </p>
-      )}
 
       <div className="nextbar">
         <button className="btn primary" onClick={onNext}>
@@ -353,19 +337,6 @@ function Explanation({
           </button>
         )}
       </div>
-
-      {showNote && (
-        <div style={{ marginTop: 10 }}>
-          <textarea
-            placeholder="誤答ノート（自分用メモ）"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-          <button className="btn sm primary" style={{ marginTop: 6 }} onClick={persistNote}>
-            保存
-          </button>
-        </div>
-      )}
     </div>
   )
 }
