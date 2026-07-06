@@ -8,6 +8,7 @@ import { categoryLabel, type Question } from '../types'
 import { formatClock } from '../lib/dateutil'
 import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
+import { useTodayProgress } from '../hooks/useAppData'
 
 export interface QuizConfig {
   limit?: number
@@ -211,7 +212,7 @@ function QuizCard({
     <div className="quiz" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <div className="quiz-top">
         <div className="quiz-meta">
-          <button className="btn ghost sm" onClick={onExit} style={{ padding: '6px 12px' }}>
+          <button className="quiz-exit" onClick={onExit}>
             × 終了
           </button>
           <span>{progressText}</span>
@@ -221,6 +222,7 @@ function QuizCard({
             <span className="chip">{categoryLabel(question.category)}</span>
           )}
         </div>
+        <GoalMeter />
         <div className="stem">{question.stem}</div>
       </div>
 
@@ -252,6 +254,24 @@ function QuizCard({
           toast={toast}
         />
       )}
+    </div>
+  )
+}
+
+/** 回答中に今日の目標達成度をリアルタイム表示（回答するたび更新） */
+function GoalMeter() {
+  const { count, goal } = useTodayProgress()
+  const pct = Math.min(100, Math.round((count / goal) * 100))
+  const done = count >= goal
+  return (
+    <div className="goalmeter">
+      <div className="goalmeter-bar">
+        <span style={{ width: `${pct}%`, background: done ? 'var(--correct)' : 'var(--primary)' }} />
+      </div>
+      <div className="goalmeter-label">
+        今日の目標 {count}/{goal}
+        {done && ' 達成🎉'}
+      </div>
     </div>
   )
 }

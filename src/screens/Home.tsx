@@ -49,10 +49,13 @@ export default function Home({
   const examDate = settings.examDate
   const daysLeft = daysUntil(examDate, now)
 
-  const weak = [...cats]
-    .filter((c) => c.answered > 0)
-    .sort((a, b) => a.accuracy - b.accuracy)
-    .slice(0, 4)
+  // 学習済みを正答率の低い順（＝苦手優先）に、未学習は末尾へ
+  const catSorted = [...cats].sort((a, b) => {
+    const aUn = a.answered === 0
+    const bUn = b.answered === 0
+    if (aUn !== bUn) return aUn ? 1 : -1
+    return a.accuracy - b.accuracy
+  })
 
   return (
     <>
@@ -143,42 +146,6 @@ export default function Home({
           </div>
         </section>
 
-        {/* マイクロセッション・タイル */}
-        <div className="sec-head">
-          <h2>クイックスタート</h2>
-          <button onClick={() => onStartQuiz({})}>すべて出題 ›</button>
-        </div>
-        <div className="tiles">
-          <button className="tile" onClick={() => onStartQuiz({ limit: 5 })}>
-            <span className="tile-ic">
-              <Icon name="bolt" size={22} />
-            </span>
-            <span className="lbl">5問</span>
-            <span className="sub">1分</span>
-          </button>
-          <button className="tile" onClick={() => onStartQuiz({ limit: 10 })}>
-            <span className="tile-ic">
-              <Icon name="book" size={22} />
-            </span>
-            <span className="lbl">10問</span>
-            <span className="sub">しっかり</span>
-          </button>
-          <button className="tile" onClick={() => onStartQuiz({ timeboxSec: 180 })}>
-            <span className="tile-ic">
-              <Icon name="timer" size={22} />
-            </span>
-            <span className="lbl">3分</span>
-            <span className="sub">時間で</span>
-          </button>
-          <button className="tile" onClick={() => onStartQuiz({ wrongOnly: true })}>
-            <span className="tile-ic">
-              <Icon name="refresh" size={22} />
-            </span>
-            <span className="lbl">復習</span>
-            <span className="sub">苦手</span>
-          </button>
-        </div>
-
         {/* 本番シミュレーション（商品カード風） */}
         <div className="sec-head">
           <h2>試験対策</h2>
@@ -200,36 +167,44 @@ export default function Home({
           </button>
         </div>
 
-        {/* 苦手カテゴリ */}
-        {weak.length > 0 && (
-          <>
-            <div className="sec-head">
-              <h2>苦手カテゴリ</h2>
-              <span className="muted">タップで集中</span>
-            </div>
-            <div className="card">
-              {weak.map((c) => (
-                <button
-                  key={c.category}
-                  className="row"
-                  style={{ width: '100%', justifyContent: 'space-between', padding: '9px 0' }}
-                  onClick={() => onStartQuiz({ categories: [c.category], limit: 10 })}
-                >
-                  <span style={{ fontWeight: 600 }}>{categoryLabel(c.category)}</span>
-                  <span
-                    className="chip"
-                    style={{
-                      background: c.accuracy < 0.5 ? 'var(--wrong-bg)' : 'var(--surface-2)',
-                      color: c.accuracy < 0.5 ? 'var(--wrong)' : 'var(--text-dim)',
-                    }}
-                  >
-                    {Math.round(c.accuracy * 100)}%
+        {/* カテゴリ別（正答率つき・タップでそのカテゴリを出題） */}
+        <div className="sec-head">
+          <h2>カテゴリ別に学習</h2>
+          <span className="muted">タップで出題</span>
+        </div>
+        <div className="catlist">
+          {catSorted.map((c) => {
+            const pct = Math.round(c.accuracy * 100)
+            const answered = c.answered > 0
+            const color = !answered
+              ? 'var(--surface-2)'
+              : pct >= 60
+                ? 'var(--correct)'
+                : pct >= 40
+                  ? 'var(--accent)'
+                  : 'var(--wrong)'
+            return (
+              <button
+                key={c.category}
+                className="cat-row"
+                onClick={() => onStartQuiz({ categories: [c.category], limit: 10 })}
+              >
+                <div className="cat-top">
+                  <span className="cat-name">{categoryLabel(c.category)}</span>
+                  <span className="cat-acc" style={{ color: answered ? color : 'var(--text-dim)' }}>
+                    {answered ? `${pct}%` : '未学習'}
                   </span>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+                </div>
+                <div className="cat-bar">
+                  <span style={{ width: `${answered ? pct : 0}%`, background: color }} />
+                </div>
+                <div className="cat-sub">
+                  学習 {c.answered}/{c.total}問{answered ? ` ・ 正解${c.correct}・誤答${c.wrong}` : ''}
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
     </>
   )
