@@ -5,6 +5,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 // GitHub Pages: served from https://<user>.github.io/study-deck/
 export default defineConfig({
   base: '/study-deck/',
+  // ビルド時刻を埋め込み（設定画面で「最終更新」として表示・デプロイ確認用）
+  define: {
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     react(),
     VitePWA({
