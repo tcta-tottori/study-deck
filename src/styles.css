@@ -885,6 +885,24 @@ button {
   cursor: default;
 }
 
+/* 採点後：問題文と選択肢を少し暗くして解説へ集中させる（正解は明瞭に残す） */
+.quiz-scroll.answered .stem {
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+.quiz-scroll.answered .choice {
+  transition: opacity 0.3s ease;
+}
+.quiz-scroll.answered .choice.correct {
+  opacity: 1;
+}
+.quiz-scroll.answered .choice.wrong {
+  opacity: 0.75;
+}
+.quiz-scroll.answered .choice.dimmed {
+  opacity: 0.4;
+}
+
 /* 解説シート：下部に別ウィンドウ的にドッキング（スクロールせず常に見える） */
 .quiz-sheet {
   flex: 0 0 auto;
@@ -926,6 +944,46 @@ button {
 .quiz-sheet p {
   margin: 6px 0;
   font-size: 15px;
+}
+
+/* AIに詳しく聞く（アプリ/サイトを開いて質問・プロンプトは自動コピー） */
+.ai-ask {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.ai-ask-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.ai-ask-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ai-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-ink);
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform 0.08s;
+}
+.ai-chip:active {
+  transform: scale(0.97);
+}
+.ai-chip.ghost {
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 .nextbar {

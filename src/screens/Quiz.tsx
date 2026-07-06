@@ -10,6 +10,7 @@ import { formatClock } from '../lib/dateutil'
 import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
 import { useTodayProgress } from '../hooks/useAppData'
+import { buildAiPrompt, aiServiceUrl, copyText, AI_SERVICES, type AiService } from '../lib/askAi'
 
 export interface QuizConfig {
   limit?: number
@@ -184,8 +185,8 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
         <GoalMeter />
       </div>
 
-      {/* 中央：問題文＋選択肢（長ければスクロール） */}
-      <div className="quiz-scroll">
+      {/* 中央：問題文＋選択肢（長ければスクロール）。採点後は少し暗くして解説へ集中させる */}
+      <div className={`quiz-scroll${answered ? ' answered' : ''}`}>
         <div className="stem">{current.stem}</div>
         <div className="choices">
           {current.choices.map((c, i) => {
@@ -300,6 +301,21 @@ function Explanation({
     toast('メモを保存しました')
   }
 
+  // 問題内容を詳しく説明してもらうプロンプトを用意し、AIアプリ/サイトを開く。
+  // プロンプトは必ずクリップボードへコピーしておき、自動入力されない場合も貼り付けられるようにする。
+  async function askAi(service: AiService) {
+    const prompt = buildAiPrompt(question)
+    // クリックのユーザー操作コンテキストを保つため、コピーは待たずに発火してから開く
+    void copyText(prompt)
+    window.open(aiServiceUrl(service, prompt), '_blank', 'noopener,noreferrer')
+    toast('プロンプトをコピーしました。開いたアプリのチャット欄に貼り付けても質問できます。')
+  }
+
+  async function copyAiPrompt() {
+    const ok = await copyText(buildAiPrompt(question))
+    toast(ok ? 'プロンプトをコピーしました。AIアプリに貼り付けてください。' : 'コピーに失敗しました')
+  }
+
   return (
     <div className="quiz-sheet">
       <div className="sheet-body">
@@ -312,6 +328,25 @@ function Explanation({
           )}
         </div>
         {question.explanation && <p>{question.explanation}</p>}
+
+        {/* AIアプリで詳しい解説を確認（API不要・アプリ/サイトを開いて質問） */}
+        <div className="ai-ask">
+          <div className="ai-ask-head">
+            <Icon name="sparkle" size={15} />
+            AIに詳しく聞く
+          </div>
+          <div className="ai-ask-btns">
+            {AI_SERVICES.map((s) => (
+              <button key={s.key} className="ai-chip" onClick={() => askAi(s.key)}>
+                {s.label}
+              </button>
+            ))}
+            <button className="ai-chip ghost" onClick={copyAiPrompt} aria-label="プロンプトをコピー">
+              <Icon name="copy" size={15} /> コピー
+            </button>
+          </div>
+        </div>
+
         {ai && (
           <p style={{ borderTop: '1px solid var(--border)', paddingTop: 8 }}>
             <strong>AI解説：</strong>
