@@ -57,9 +57,12 @@ export default function App() {
 
   const go = useCallback((v: View) => setView(v), [])
 
+  const landscape = !!settings?.landscape
+
   return (
     <ToastCtx.Provider value={toast.show}>
-      <div className="app">
+      <div className={`rot${landscape ? ' rot-on' : ''}`}>
+        <div className="app">
         {view === 'home' && <Home onStartQuiz={startQuiz} go={go} />}
         {view === 'quiz' && <Quiz config={quizConfig} onExit={() => setView('home')} />}
         {view === 'exam' && <Exam onExit={() => setView('home')} />}
@@ -78,6 +81,7 @@ export default function App() {
         )}
 
         {toast.node && <Toast>{toast.node}</Toast>}
+        </div>
       </div>
     </ToastCtx.Provider>
   )

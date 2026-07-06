@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { View } from '../App'
 import type { QuizConfig } from './Quiz'
 import { useActivity, useQuestions, useRecordsMap, useSettings } from '../hooks/useAppData'
+import { updateSettings } from '../db/db'
 import { computeStreak, dayKey, daysUntil, formatJpDate } from '../lib/dateutil'
 import { categoryStats, dueCount, overallAccuracy } from '../lib/stats'
 import { categoryLabel } from '../types'
@@ -18,7 +19,7 @@ export default function Home({
   const questions = useQuestions()
   const records = useRecordsMap()
   const activity = useActivity()
-  const [simple, setSimple] = useState(false)
+  const landscape = !!settings?.landscape
 
   const now = Date.now()
   const todayKey = dayKey(now)
@@ -60,12 +61,12 @@ export default function Home({
       </header>
 
       <div className="screen">
-        <div className="seg" role="tablist">
-          <button className={!simple ? 'on' : ''} onClick={() => setSimple(false)}>
-            通常
+        <div className="seg" role="tablist" aria-label="画面の向き">
+          <button className={!landscape ? 'on' : ''} onClick={() => updateSettings({ landscape: false })}>
+            縦画面
           </button>
-          <button className={simple ? 'on' : ''} onClick={() => setSimple(true)}>
-            シンプル
+          <button className={landscape ? 'on' : ''} onClick={() => updateSettings({ landscape: true })}>
+            横画面
           </button>
         </div>
 
@@ -192,8 +193,8 @@ export default function Home({
           </button>
         </div>
 
-        {/* 苦手カテゴリ（通常表示のみ） */}
-        {!simple && weak.length > 0 && (
+        {/* 苦手カテゴリ */}
+        {weak.length > 0 && (
           <>
             <div className="sec-head">
               <h2>苦手カテゴリ</h2>
