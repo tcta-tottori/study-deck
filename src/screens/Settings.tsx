@@ -4,6 +4,23 @@ import type { AppSettings } from '../types'
 import { notificationPermission, requestNotificationPermission } from '../lib/reminder'
 import { useToast } from '../components/Toast'
 
+// ビルド時刻（デプロイされたバージョンの目安）を日本時間で表示
+function formatBuildTime(): string {
+  try {
+    return new Intl.DateTimeFormat('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(new Date(__BUILD_TIME__))
+  } catch {
+    return '不明'
+  }
+}
+
 export default function Settings({ onBack }: { onBack: () => void }) {
   const toast = useToast()
   const [s, setS] = useState<AppSettings | null>(null)
@@ -154,6 +171,9 @@ export default function Settings({ onBack }: { onBack: () => void }) {
 
         <p className="muted" style={{ textAlign: 'center', fontSize: 12 }}>
           生産管理プランニング3級 学習アプリ · 端末内で完結 · オフライン対応
+        </p>
+        <p className="muted" style={{ textAlign: 'center', fontSize: 11, marginTop: 4 }}>
+          最終更新: {formatBuildTime()}
         </p>
       </div>
     </>
