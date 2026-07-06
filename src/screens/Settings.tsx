@@ -170,7 +170,7 @@ export default function Settings({ onBack }: { onBack: () => void }) {
         </div>
 
         <p className="muted" style={{ textAlign: 'center', fontSize: 12 }}>
-          生産管理プランニング3級 学習アプリ · 端末内で完結 · オフライン対応
+          StudyDrill · 生産管理プランニング3級 学習アプリ · 端末内で完結・オフライン対応
         </p>
         <p className="muted" style={{ textAlign: 'center', fontSize: 11, marginTop: 4 }}>
           最終更新: {formatBuildTime()}

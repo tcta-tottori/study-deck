@@ -41,7 +41,7 @@ export function scheduleDailyReminder(
     const body = '今日の学習はお済みですか？1問だけでも回しましょう。'
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       try {
-        new Notification('生産管理3級 学習リマインド', { body })
+        new Notification('StudyDrill 学習リマインド', { body })
       } catch {
         onFallback()
       }

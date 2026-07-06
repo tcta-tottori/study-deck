@@ -62,7 +62,7 @@ export default function Home({
   return (
     <>
       <header className="appbar">
-        <h1>生産管理プランニング3級</h1>
+        <h1>StudyDrill</h1>
         <span className="spacer" />
         <button className="iconbtn" onClick={() => go('dashboard')} aria-label="成績">
           <Icon name="chart" size={20} />
