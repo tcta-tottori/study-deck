@@ -147,6 +147,32 @@ button {
 .rot-on .app {
   contain: paint;
 }
+/* ★横画面の一問一答：選択肢が全て画面内に収まるよう2列グリッド＋コンパクト化
+   （親指ゾーンの下寄せスペーサーは無効化） */
+.rot-on .quiz {
+  padding-top: 4px;
+}
+.rot-on .quiz-spacer {
+  display: none;
+}
+.rot-on .goalmeter {
+  margin: 2px 0 8px;
+}
+.rot-on .stem {
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 4px 0 8px;
+}
+.rot-on .choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.rot-on .choice {
+  min-height: 0;
+  padding: 12px 14px;
+  font-size: 15px;
+}
 
 /* --- App bar --- */
 .appbar {
@@ -505,6 +531,57 @@ button {
   border-color: var(--primary);
 }
 
+/* --- カテゴリ別リスト --- */
+.catlist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cat-row {
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 13px 16px;
+  transition: transform 0.08s;
+}
+.cat-row:active {
+  transform: scale(0.99);
+}
+.cat-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.cat-name {
+  font-weight: 700;
+  font-size: 15px;
+}
+.cat-acc {
+  font-weight: 800;
+  font-size: 15px;
+  flex: 0 0 auto;
+}
+.cat-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+  margin: 8px 0 6px;
+}
+.cat-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s;
+}
+.cat-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
 /* --- Generic cards --- */
 .card {
   background: var(--surface);
@@ -604,7 +681,41 @@ button {
   align-items: center;
   font-size: 12px;
   color: var(--text-dim);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+}
+/* 終了ボタン：背景に埋もれないようグレーのピルで明確化 */
+.quiz-exit {
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 700;
+}
+.quiz-exit:active {
+  transform: scale(0.97);
+}
+/* 回答中の今日の目標インジケーター（リアルタイム） */
+.goalmeter {
+  margin: 2px 0 12px;
+}
+.goalmeter-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.goalmeter-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.35s;
+}
+.goalmeter-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 700;
+  margin-top: 5px;
 }
 .stem {
   font-size: 19px;
