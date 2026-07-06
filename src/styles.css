@@ -218,6 +218,56 @@ button {
   }
 }
 
+/* --- スクロール／初期表示のリビール（下から浮かび上がり＋ゲージ0→現在値） --- */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.reveal-in {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.5s ease, transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* リビール内の横ゲージは0幅から。表示（reveal-in）と同時に現在値へ滑らかに伸びる */
+.reveal .hero-progress > span,
+.reveal .cat-bar > span,
+.reveal .progress > span,
+.reveal .bar-fill {
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.reveal-in .hero-progress > span,
+.reveal-in .cat-bar > span,
+.reveal-in .progress > span,
+.reveal-in .bar-fill {
+  transform: scaleX(1);
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.4s;
+}
+/* box分布の縦バーは下から伸ばす */
+.reveal .box-bar {
+  transform: scaleY(0);
+  transform-origin: bottom center;
+}
+.reveal-in .box-bar {
+  transform: scaleY(1);
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .reveal .hero-progress > span,
+  .reveal .cat-bar > span,
+  .reveal .progress > span,
+  .reveal .bar-fill,
+  .reveal .box-bar {
+    transform: none;
+  }
+}
+
 /* --- Segmented control (通常/シンプル 風) --- */
 .seg {
   display: inline-flex;
