@@ -111,7 +111,7 @@ export default function ImportScreen() {
           </p>
           <p className="muted" style={{ fontSize: 13 }}>
             ・answerIndex は 0〜3（1〜4表記も自動補正）<br />
-            ・category は仕様の14分類の値（例: 共通_品質管理 / PLN_生産方式）<br />
+            ・category は7分類（製品企画・設計管理／生産システム・生産計画／品質管理／原価管理／納期管理／安全衛生管理／環境管理）。旧14分類の値も自動変換します<br />
             ・id 重複や answerIndex 範囲外は自動で弾きます
           </p>
           <hr className="sep" />

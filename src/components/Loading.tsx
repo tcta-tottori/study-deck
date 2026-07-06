@@ -1,9 +1,7 @@
-// データ読込中の画面（起動ローダーと同じ「本のページめくり」アニメーション）
+// データ読込中の画面（3Dの本ページめくりアニメ＋点滅する「読み込み中」）
 export default function Loading() {
-  const base = import.meta.env.BASE_URL
   return (
     <div className="loading">
-      <img className="loading-logo" src={`${base}pwa-192.png`} alt="" width={84} height={84} />
       <div className="bookflip" aria-hidden="true">
         <div className="bk">
           <span className="h l" />

@@ -1,5 +1,6 @@
 import { db } from './db'
-import { CATEGORIES, type Category, type Question, type AnswerIndex } from '../types'
+import { type Question, type AnswerIndex } from '../types'
+import { normalizeCategory } from '../lib/categoryMap'
 
 export interface ImportReport {
   ok: boolean
@@ -8,8 +9,6 @@ export interface ImportReport {
   errors: string[]
   total: number
 }
-
-const CATEGORY_SET = new Set<string>(CATEGORIES)
 
 function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: Question; error?: string } {
   const where = `#${idx + 1}`
@@ -20,9 +19,10 @@ function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: 
   if (typeof id !== 'string' || id.trim() === '') return { error: `${where}: id が不正` }
   if (seenIds.has(id)) return { error: `${where}: id が重複 (${id})` }
 
-  const category = o.category
-  if (typeof category !== 'string' || !CATEGORY_SET.has(category))
-    return { error: `${where} (${id}): category が不正 (${String(category)})` }
+  // 新7分類 or 旧14分類（自動変換）を受け付ける
+  const category = typeof o.category === 'string' ? normalizeCategory(o.category) : null
+  if (!category)
+    return { error: `${where} (${id}): category が不正 (${String(o.category)})` }
 
   const stem = o.stem
   if (typeof stem !== 'string' || stem.trim() === '') return { error: `${where} (${id}): stem が空` }
@@ -42,7 +42,7 @@ function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: 
     q: {
       id,
       origin,
-      category: category as Category,
+      category,
       subcategory: typeof o.subcategory === 'string' ? o.subcategory : undefined,
       stem,
       choices: choices as [string, string, string, string],
@@ -182,5 +182,5 @@ export function parseCsv(text: string): string[][] {
 }
 
 export const CSV_TEMPLATE = `id,category,subcategory,stem,choice1,choice2,choice3,choice4,answerIndex,explanation,source
-OFF-R06L-0001,共通_品質管理,QC七つ道具,"問題文をここに（カンマや改行を含む場合は""で囲む）",選択肢ア,選択肢イ,選択肢ウ,選択肢エ,1,解説をここに,R6後-041B01
+OFF-R06L-0001,品質管理,QC七つ道具,"問題文をここに（カンマや改行を含む場合は""で囲む）",選択肢ア,選択肢イ,選択肢ウ,選択肢エ,1,解説をここに,R6後-041B01
 `
