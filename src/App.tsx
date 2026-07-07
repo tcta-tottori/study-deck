@@ -42,6 +42,12 @@ export default function App() {
     const t = setTimeout(() => setBailout(true), 6000)
     return () => clearTimeout(t)
   }, [])
+  // 読込画面は最低1秒は表示（一瞬で消えるチラつきを防ぐ）
+  const [minShown, setMinShown] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setMinShown(true), 1000)
+    return () => clearTimeout(t)
+  }, [])
 
   // テーマ適用（設定 + システム変更を追従）
   useEffect(() => {
@@ -81,10 +87,11 @@ export default function App() {
 
   const go = useCallback((v: View) => setView(v), [])
 
-  // 初期データが揃うまではローディング表示（数値の0ちらつき防止）。
+  // 初期データが揃い、かつ最低表示時間（1秒）を満たすまではローディング表示
+  // （数値の0ちらつき・読込画面の一瞬消えを防ぐ）。
   // 万一データ取得が詰まっても数秒でアプリ表示へ移行し、無限ローディングを防ぐ。
   const ready = questions !== undefined && records !== undefined && activity !== undefined
-  if (!ready && !bailout) return <Loading />
+  if ((!ready || !minShown) && !bailout) return <Loading />
   const safeQuestions = questions ?? []
   const safeRecords = records ?? new Map()
   const safeActivity = activity ?? []
