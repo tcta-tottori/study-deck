@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie'
-import type { Question, StudyRecord, ExamResult, AppSettings } from '../types'
+import type { Question, StudyRecord, ExamResult, ExamProgress, AppSettings } from '../types'
 import { DEFAULT_SUBJECT_ID } from '../lib/subjects'
 
 /** 1日の学習量ログ（ストリーク・日次目標・活動グラフ用） */
@@ -15,6 +15,8 @@ export class StudyDB extends Dexie {
   examResults!: Table<ExamResult, number>
   settings!: Table<AppSettings, string>
   activity!: Table<DayActivity, string>
+  /** 中断中の本番シミュレーション（'current' の1件のみ） */
+  examProgress!: Table<ExamProgress, string>
 
   constructor() {
     super('study-deck')
@@ -24,6 +26,10 @@ export class StudyDB extends Dexie {
       examResults: '++id, takenAt',
       settings: 'key',
       activity: 'day',
+    })
+    // v2: 中断（続きから再開）用のテーブルを追加。既存テーブルはそのまま引き継がれる。
+    this.version(2).stores({
+      examProgress: 'id',
     })
   }
 }
@@ -55,4 +61,22 @@ export async function getSettings(): Promise<AppSettings> {
 export async function updateSettings(patch: Partial<AppSettings>): Promise<void> {
   const cur = await getSettings()
   await db.settings.put({ ...cur, ...patch, key: 'app' })
+}
+
+// --- 中断中の本番シミュレーション（続きから再開）---
+const EXAM_PROGRESS_ID = 'current' as const
+
+/** 中断中の試験を保存（常に1件を上書き） */
+export async function saveExamProgress(p: Omit<ExamProgress, 'id'>): Promise<void> {
+  await db.examProgress.put({ ...p, id: EXAM_PROGRESS_ID })
+}
+
+/** 中断中の試験を取得（無ければ undefined） */
+export async function getExamProgress(): Promise<ExamProgress | undefined> {
+  return db.examProgress.get(EXAM_PROGRESS_ID)
+}
+
+/** 中断中の試験を破棄（提出・完了・新規開始時に呼ぶ） */
+export async function clearExamProgress(): Promise<void> {
+  await db.examProgress.delete(EXAM_PROGRESS_ID)
 }

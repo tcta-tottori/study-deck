@@ -7,11 +7,12 @@ import Exam from './screens/Exam'
 import Dashboard from './screens/Dashboard'
 import ImportScreen from './screens/Import'
 import Settings from './screens/Settings'
+import ExamHistory from './screens/ExamHistory'
 import Toast, { ToastCtx, useToastState } from './components/Toast'
 import { scheduleDailyReminder } from './lib/reminder'
 import { Icon, type IconName } from './components/Icon'
 
-export type View = 'home' | 'quiz' | 'exam' | 'dashboard' | 'import' | 'settings'
+export type View = 'home' | 'quiz' | 'exam' | 'dashboard' | 'import' | 'settings' | 'exams'
 
 const NAV_ITEMS: { view: View; label: string; icon: IconName }[] = [
   { view: 'home', label: 'ホーム', icon: 'home' },
@@ -154,17 +155,21 @@ export default function App() {
           />
         )}
         {view === 'quiz' && <Quiz config={quizConfig} onExit={() => setView('home')} />}
-        {view === 'exam' && <Exam onExit={() => setView('home')} />}
+        {view === 'exam' && <Exam onExit={() => setView('home')} onReview={startQuiz} />}
         {view === 'dashboard' && (
           <Dashboard
             questions={safeQuestions}
             records={safeRecords}
             activity={safeActivity}
             onHome={() => setView('home')}
+            onOpenExams={() => setView('exams')}
           />
         )}
         {view === 'import' && <ImportScreen onHome={() => setView('home')} />}
         {view === 'settings' && <Settings onBack={() => setView('home')} />}
+        {view === 'exams' && (
+          <ExamHistory onHome={() => setView('home')} onReview={startQuiz} />
+        )}
         </div>
 
         {/* 以下のコントロールは .app（横画面ではスクロールコンテナ）の外に置き、

@@ -69,6 +69,23 @@ export interface ExamResult {
   questionIds: string[]
   /** 各問の回答（-1 = 未回答） */
   answers: number[]
+  /** 出題ラベル（例「全分野バランス 40問」「令和7年度 後期」） */
+  label?: string
+}
+
+/**
+ * 中断中の本番シミュレーション（1件のみ保持。続きから再開に使う）。
+ * 経過時間は「中断時点までの累計秒（elapsedSec）」を保存し、再開時に加算していく。
+ */
+export interface ExamProgress {
+  id: 'current' // 常に1件のみ
+  label: string // 出題ラベル（再開カード・結果に使う）
+  questionIds: string[]
+  answers: number[] // -1 = 未回答
+  cur: number // 現在の問題インデックス
+  elapsedSec: number // 中断時点までの経過秒
+  durationSec: number // 計画（制限）時間
+  savedAt: number
 }
 
 export interface AppSettings {

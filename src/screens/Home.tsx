@@ -205,6 +205,11 @@ export default function Home({
               開始する
             </button>
           </div>
+          <button className="pc-sublink" onClick={() => go('exams')}>
+            <Icon name="chart" size={16} />
+            受験履歴・復習を見る
+            <Icon name="arrow" size={15} />
+          </button>
         </div>
         </Reveal>
         </div>
