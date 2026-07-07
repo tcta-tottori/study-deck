@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useLayoutEffect, useState, useCallback } from 'react'
 import { useSettings, useQuestions, useRecordsMap, useActivity } from './hooks/useAppData'
 import { updateSettings } from './db/db'
 import Home from './screens/Home'
@@ -113,6 +113,14 @@ export default function App() {
     setMenuOpen(false)
   }, [view, wide])
 
+  // ページ切替時は必ず先頭を表示（前ページのスクロール位置を持ち越さない）。
+  // 縦/PCはウィンドウ、横画面は .app がスクロールコンテナなので両方リセット。
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+    const app = document.querySelector('.app') as HTMLElement | null
+    if (app) app.scrollTop = 0
+  }, [view])
+
   // 初期データが揃い、かつ最低表示時間（1秒）を満たすまではローディング表示
   // （数値の0ちらつき・読込画面の一瞬消えを防ぐ）。
   // 万一データ取得が詰まっても数秒でアプリ表示へ移行し、無限ローディングを防ぐ。
@@ -145,7 +153,10 @@ export default function App() {
         )}
         {view === 'import' && <ImportScreen />}
         {view === 'settings' && <Settings onBack={() => setView('home')} />}
+        </div>
 
+        {/* 以下のコントロールは .app（横画面ではスクロールコンテナ）の外に置き、
+            スクロールしても回転フレーム基準で固定されるようにする。 */}
         {/* 縦横切替トグル（スマホ幅のときのみ／上部メニュー跡地）。アイコンで表示。 */}
         {showChrome && !pcWidth && (
           <div className="otoggle" role="group" aria-label="画面の向き">
@@ -202,7 +213,6 @@ export default function App() {
         )}
 
         {toast.node && <Toast>{toast.node}</Toast>}
-        </div>
       </div>
     </ToastCtx.Provider>
   )
