@@ -54,19 +54,36 @@ export function aiServiceUrl(service: AiService, prompt: string): string {
  * window.open で新規タブにフォーカスが移ると navigator.clipboard.writeText は
  * 「文書が非フォーカス」で失敗するため、開く前にこの同期コピーで確定させる用途。
  * （Gemini のようにURLプレフィル不可＝クリップボードが唯一の受け渡し手段のとき必須）
+ *
+ * 重要：textarea.focus() は使わない。フォーカス移動を挟むと直後の window.open が
+ * モバイルで「ユーザー操作由来でない」と判定されブロックされるため、
+ * どの要素にもフォーカスを当てず Selection/Range で範囲選択してコピーする。
  */
 export function copyTextSync(text: string): boolean {
   try {
-    const ta = document.createElement('textarea')
-    ta.value = text
-    ta.style.position = 'fixed'
-    ta.style.left = '-9999px'
-    ta.style.opacity = '0'
-    document.body.appendChild(ta)
-    ta.focus()
-    ta.select()
+    const span = document.createElement('span')
+    span.textContent = text
+    span.style.position = 'fixed'
+    span.style.left = '-9999px'
+    span.style.top = '0'
+    span.style.whiteSpace = 'pre'
+    document.body.appendChild(span)
+
+    const sel = window.getSelection()
+    // 既存の選択を退避し、コピー後に復元する
+    const saved: Range[] = []
+    if (sel) for (let i = 0; i < sel.rangeCount; i++) saved.push(sel.getRangeAt(i))
+
+    const range = document.createRange()
+    range.selectNodeContents(span)
+    sel?.removeAllRanges()
+    sel?.addRange(range)
+
     const ok = document.execCommand('copy')
-    document.body.removeChild(ta)
+
+    sel?.removeAllRanges()
+    saved.forEach((r) => sel?.addRange(r))
+    document.body.removeChild(span)
     return ok
   } catch {
     return false
