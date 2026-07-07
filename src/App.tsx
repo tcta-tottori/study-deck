@@ -28,6 +28,12 @@ function applyTheme(mode: 'auto' | 'light' | 'dark') {
     resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
   root.setAttribute('data-theme', resolved)
+  // 起動ローダー（index.html の inline script）が次回起動時に即座に配色を合わせられるよう保存
+  try {
+    localStorage.setItem('sd-theme', mode)
+  } catch {
+    /* localStorage 不可環境では無視 */
+  }
   const meta = document.querySelector('meta[name="theme-color"]')
   if (meta) meta.setAttribute('content', resolved === 'dark' ? '#0a1122' : '#f7f9fd')
 }
@@ -80,16 +86,29 @@ export default function App() {
     return () => window.removeEventListener('sw-updating', h)
   }, [])
 
-  // テーマ適用（設定 + システム変更を追従）
+  // テーマ適用（設定 + システム変更を追従）。解決後の明暗をトグルボタン表示に使う。
+  const [resolvedDark, setResolvedDark] = useState(false)
   useEffect(() => {
     const mode = settings?.theme ?? 'auto'
     applyTheme(mode)
+    setResolvedDark(document.documentElement.getAttribute('data-theme') === 'dark')
     if (mode !== 'auto') return
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = () => applyTheme('auto')
+    const handler = () => {
+      applyTheme('auto')
+      setResolvedDark(mq.matches)
+    }
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
   }, [settings?.theme])
+
+  // ライト⇄ダークの手動トグル（現在の解決テーマを反転して設定に保存）
+  const toggleTheme = useCallback(() => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+    applyTheme(next)
+    setResolvedDark(next === 'dark')
+    void updateSettings({ theme: next })
+  }, [])
 
   // 毎日リマインド（通知 or アプリ内バナーへフォールバック）
   useEffect(() => {
@@ -210,24 +229,24 @@ export default function App() {
 
         {/* 以下のコントロールは .app（横画面ではスクロールコンテナ）の外に置き、
             スクロールしても回転フレーム基準で固定されるようにする。 */}
-        {/* 縦横切替トグル（スマホ幅のときのみ／上部メニュー跡地）。アイコンで表示。 */}
+        {/* 上部コントロール（スマホ幅のときのみ）：ライト/ダーク切替＋縦横切替を横並びで表示。 */}
         {showChrome && !pcWidth && (
-          <div className="otoggle" role="group" aria-label="画面の向き">
+          <div className="top-ctrls">
             <button
-              className={!landscape ? 'on' : ''}
-              onClick={() => setLandscape(false)}
-              aria-label="縦画面"
-              aria-pressed={!landscape}
+              className="tctrl-btn"
+              onClick={toggleTheme}
+              aria-label={resolvedDark ? 'ライトモードに切り替え' : 'ダークモードに切り替え'}
+              aria-pressed={resolvedDark}
             >
-              <Icon name="phone" size={20} />
+              <Icon name={resolvedDark ? 'sun' : 'moon'} size={20} />
             </button>
             <button
-              className={landscape ? 'on' : ''}
-              onClick={() => setLandscape(true)}
-              aria-label="横画面"
+              className="tctrl-btn"
+              onClick={() => setLandscape(!landscape)}
+              aria-label={landscape ? '縦画面に切り替え' : '横画面に切り替え'}
               aria-pressed={landscape}
             >
-              <Icon name="monitor" size={20} />
+              <Icon name="swap" size={22} />
             </button>
           </div>
         )}

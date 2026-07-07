@@ -10,10 +10,32 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>StudyDrill</title>
+    <script>
+      /* 起動ローダーを描く前に保存済みテーマを即適用（ダーク時のちらつき防止）。
+         'sd-theme' は 'auto' | 'light' | 'dark'。未保存の既定はライト。 */
+      (function () {
+        try {
+          var m = localStorage.getItem('sd-theme') || 'light'
+          var dark = m === 'dark' || (m === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+        } catch (e) {
+          /* localStorage 不可環境では CSS のメディアクエリにフォールバック */
+        }
+      })()
+    </script>
     <style>
       /* JSが読み込まれる前から即表示する起動ローダー（白基調・本の線画を描くアニメ）。
          #root の外に置き、アプリ準備完了までこの1枚だけを表示する（ローダー2回表示を防止）。 */
       #boot {
+        /* 読み込み画面のテーマ変数（既定＝ライト）。ダーク時は下部で上書き。 */
+        --boot-bg: #f7f9fd;
+        --boot-ink: #2347c5;
+        --boot-page: #ffffff;
+        --boot-page2: #e6ecf9;
+        --boot-text: #7b869b;
+        --boot-shadow: rgba(18, 38, 90, 0.16);
+        --boot-stack-a: #9fb1ee;
+        --boot-stack-b: #6f88e0;
         position: fixed;
         inset: 0;
         z-index: 9999;
@@ -22,9 +44,33 @@
         align-items: center;
         justify-content: center;
         gap: 20px;
-        background: #f7f9fd;
+        background: var(--boot-bg);
         font-family: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
         transition: opacity 0.4s ease;
+      }
+      /* システムがダーク かつ 明示的にライト指定されていないときはダーク配色 */
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) #boot {
+          --boot-bg: #0a1122;
+          --boot-ink: #4d70f0;
+          --boot-page: #17284b;
+          --boot-page2: #0f1a30;
+          --boot-text: #93a1bd;
+          --boot-shadow: rgba(0, 0, 0, 0.5);
+          --boot-stack-a: #2f4a9e;
+          --boot-stack-b: #3f5fd0;
+        }
+      }
+      /* アプリが明示的にダークを適用したとき（設定＝ダーク） */
+      :root[data-theme='dark'] #boot {
+        --boot-bg: #0a1122;
+        --boot-ink: #4d70f0;
+        --boot-page: #17284b;
+        --boot-page2: #0f1a30;
+        --boot-text: #93a1bd;
+        --boot-shadow: rgba(0, 0, 0, 0.5);
+        --boot-stack-a: #2f4a9e;
+        --boot-stack-b: #3f5fd0;
       }
       #boot.boot-hide {
         opacity: 0;
@@ -32,7 +78,7 @@
       }
       #boot .bl-text {
         font-size: 14px;
-        color: #7b869b;
+        color: var(--boot-text);
         font-weight: 600;
         letter-spacing: 0.08em;
         animation: blink 1.3s infinite ease-in-out;
@@ -49,8 +95,8 @@
       /* 3Dの分厚い本：左右の厚いページ束の上を、ページが1枚ずつ最後までめくれるローディング */
       .book3d {
         perspective: 300px;
-        width: 92px;
-        height: 60px;
+        width: 74px;
+        height: 48px;
       }
       .book3d .bk {
         position: relative;
@@ -69,24 +115,24 @@
       }
       /* 左右の分厚いページ束。下方向へ段積みして「厚み（3D）」を表現する */
       .book3d .stack {
-        border: 2px solid #2347c5;
-        background: #fff;
+        border: 2px solid var(--boot-ink);
+        background: var(--boot-page);
         box-shadow:
-          0 2px 0 -1px #fff, 0 3px 0 0 #9fb1ee,
-          0 4px 0 -1px #fff, 0 5px 0 0 #6f88e0,
-          0 6px 0 -1px #fff, 0 7px 0 0 #2347c5;
+          0 2px 0 -1px var(--boot-page), 0 3px 0 0 var(--boot-stack-a),
+          0 4px 0 -1px var(--boot-page), 0 5px 0 0 var(--boot-stack-b),
+          0 6px 0 -1px var(--boot-page), 0 7px 0 0 var(--boot-ink);
       }
       .book3d .stack.left {
         left: 0;
         border-right: none;
         border-radius: 7px 0 0 7px;
-        background: linear-gradient(90deg, #eef2fb, #fff);
+        background: linear-gradient(90deg, var(--boot-page2), var(--boot-page));
       }
       .book3d .stack.right {
         right: 0;
         border-left: none;
         border-radius: 0 7px 7px 0;
-        background: linear-gradient(90deg, #fff, #eef2fb);
+        background: linear-gradient(90deg, var(--boot-page), var(--boot-page2));
       }
       /* 1枚ずつめくれるページ（右→左へ0→-180度で最後までめくる）。両面あり */
       .book3d .leaf {
@@ -101,16 +147,16 @@
         position: absolute;
         inset: 0;
         box-sizing: border-box;
-        border: 2px solid #2347c5;
+        border: 2px solid var(--boot-ink);
         border-radius: 7px;
         backface-visibility: hidden;
       }
       .book3d .leaf .front {
-        background: linear-gradient(90deg, #fff, #e6ecf9);
-        box-shadow: 1px 1px 5px rgba(18, 38, 90, 0.16);
+        background: linear-gradient(90deg, var(--boot-page), var(--boot-page2));
+        box-shadow: 1px 1px 5px var(--boot-shadow);
       }
       .book3d .leaf .back {
-        background: linear-gradient(270deg, #fff, #e6ecf9);
+        background: linear-gradient(270deg, var(--boot-page), var(--boot-page2));
         transform: rotateY(180deg);
       }
       .book3d .leaf.l2 {
