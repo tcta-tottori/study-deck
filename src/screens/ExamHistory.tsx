@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { useExamResults, useQuestions } from '../hooks/useAppData'
 import { BackHome } from '../components/BackHome'
 import { ExamReview } from '../components/ExamReview'
-import { Icon } from '../components/Icon'
 import type { QuizConfig } from './Quiz'
 
 /** 受験日時（ローカル）を「M/D HH:mm」で表示 */
@@ -42,10 +41,7 @@ export default function ExamHistory({
     return (
       <>
         <header className="appbar">
-          <button className="backhome" onClick={() => setSelectedId(null)} aria-label="一覧へ戻る">
-            <Icon name="arrow" size={16} strokeWidth={2} className="backhome-arrow-flip" />
-            <span>一覧</span>
-          </button>
+          <BackHome onClick={() => setSelectedId(null)} label="一覧へ戻る" />
           <h1>試験結果の詳細</h1>
         </header>
         <div className="screen" style={{ paddingTop: 8 }}>
