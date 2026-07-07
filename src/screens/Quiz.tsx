@@ -10,7 +10,7 @@ import { formatClock, dayKey } from '../lib/dateutil'
 import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
 import { BrandIcon } from '../components/BrandIcon'
-import { buildAiPrompt, aiServiceUrl, copyText, copyTextSync, AI_SERVICES, type AiService } from '../lib/askAi'
+import { buildAiPrompt, aiServiceUrl, copyText, AI_SERVICES, type AiService } from '../lib/askAi'
 
 export interface QuizConfig {
   limit?: number
@@ -325,19 +325,6 @@ function Explanation({
   function askAi(service: AiService) {
     const prompt = buildAiPrompt(question)
     const url = aiServiceUrl(service, prompt)
-    if (service === 'gemini') {
-      // Gemini はURLプレフィル未対応で、受け渡しはクリップボードのみ。
-      // copyTextSync はフォーカスを奪わない（Selection方式）ので、先に確実へコピーしてから
-      // 同一ジェスチャ内で開いても window.open はブロックされない。
-      const ok = copyTextSync(prompt)
-      window.open(url, '_blank', 'noopener,noreferrer')
-      toast(
-        ok
-          ? 'プロンプトをコピーしました。Geminiのチャット欄に貼り付けて質問してください。'
-          : 'Geminiを開きました。「コピー」ボタンでプロンプトを取得して貼り付けてください。',
-      )
-      return
-    }
     // Claude / ChatGPT はURLに載せて自動入力される。コピーは貼り付け用の保険。
     void copyText(prompt)
     window.open(url, '_blank', 'noopener,noreferrer')

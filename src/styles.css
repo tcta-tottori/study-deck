@@ -645,11 +645,13 @@ button {
   color: var(--text-dim);
   margin: 6px 0 12px;
 }
+/* 数値・単位テキストと「開始する」ボタンを1行に。ボタンは合格テキストの右側へ
+   左揃えで並べる（余白の auto は使わず、テキスト直後に置いて左寄せのまま右へ）。 */
 .prodcard .pc-figure {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-bottom: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
 }
 .prodcard .pc-figure .big {
   font-size: 30px;
@@ -659,6 +661,9 @@ button {
 .prodcard .pc-figure .unit {
   font-size: 13px;
   color: var(--text-dim);
+}
+.prodcard .pc-figure .pc-action {
+  margin-left: 4px;
 }
 .pc-action {
   display: inline-block;
@@ -866,13 +871,13 @@ button {
   white-space: nowrap;
   font-weight: 700;
 }
-/* 終了ボタン：濃い背景＋白文字のピルで明確化 */
+/* 終了ボタン：濃い背景＋白文字。「開始する」ボタンと同じく四角ベースで角だけ丸める */
 .quiz-exit {
   height: 32px;
   padding: 0 15px;
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  border-radius: 12px;
   background: var(--primary);
   color: var(--primary-ink);
   font-size: 13px;
@@ -887,6 +892,7 @@ button {
   height: 32px;
   max-width: 100%;
   padding: 0 11px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   font-size: 10.5px;
@@ -1150,12 +1156,6 @@ button {
 .ai-chip.brand-claude {
   background: #d97757;
   color: #fff3ea;
-  border-color: transparent;
-}
-/* Gemini：青→紫のグラデ背景・白文字/白アイコン */
-.ai-chip.brand-gemini {
-  background: linear-gradient(100deg, #4285f4 0%, #6b5ce7 55%, #9b4dea 100%);
-  color: #ffffff;
   border-color: transparent;
 }
 /* ChatGPT：白背景・黒文字/黒アイコン（テーマ問わず視認できるよう薄い枠を付ける） */
