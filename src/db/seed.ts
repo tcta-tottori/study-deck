@@ -1,38 +1,29 @@
 import { db, getSettings, updateSettings } from './db'
 import type { Question } from '../types'
 import { normalizeCategory } from '../lib/categoryMap'
-import seedRaw from '../data/questions.seed.json'
-
-/** seed のバージョン。seed を追記・修正したら上げると再取込される（既存の学習履歴は保持） */
-const SEED_VERSION = 2
-
-const seed = seedRaw as Question[]
 
 /**
- * 初回起動時（または seed 更新時）に original 問題を Dexie へ取り込む。
- * - official 問題やユーザーが編集した note/aiExplanation は保持する。
+ * 同梱のオリジナル練習問題（origin: 'original'）は廃止し、
+ * 出題プールは取込んだ公式過去問（origin: 'official'）のみに限定する。
+ *
+ * 既に配信済みの端末には過去のシードで取り込んだ original 問題が残っているため、
+ * 一度きりの移行でそれらと対応する学習履歴を削除する。
+ * ユーザーが取り込んだ official 問題・note・aiExplanation は保持する。
  */
-export async function ensureSeeded(): Promise<void> {
-  const settings = await getSettings()
-  if ((settings.seedVersion ?? 0) >= SEED_VERSION) return
+export async function purgeOriginalQuestions(): Promise<void> {
+  const KEY = 'orig-purged-v1'
+  if (localStorage.getItem(KEY)) return
 
-  await db.transaction('rw', db.questions, async () => {
-    for (const q of seed) {
-      const existing = await db.questions.get(q.id)
-      if (existing) {
-        // ユーザー編集分（note/aiExplanation）を残して本文だけ更新
-        await db.questions.put({
-          ...q,
-          note: existing.note,
-          aiExplanation: existing.aiExplanation ?? q.aiExplanation,
-        })
-      } else {
-        await db.questions.put(q)
-      }
+  await db.transaction('rw', db.questions, db.studyRecords, async () => {
+    const originals = await db.questions.where('origin').equals('original').toArray()
+    if (originals.length) {
+      const ids = originals.map((q) => q.id)
+      await db.questions.bulkDelete(ids)
+      await db.studyRecords.bulkDelete(ids)
     }
   })
 
-  await updateSettings({ seedVersion: SEED_VERSION })
+  localStorage.setItem(KEY, '1')
 }
 
 /**
@@ -49,8 +40,7 @@ export async function migrateThemeBase(): Promise<void> {
 }
 
 /**
- * 旧14分類で取り込んだ問題（主に公式問題）を新7分類へ寄せる一度きりの移行。
- * seed問題はseed再取込で更新されるが、公式問題はここで正規化する。
+ * 旧14分類で取り込んだ問題（公式問題）を新7分類へ寄せる一度きりの移行。
  */
 export async function migrateCategories(): Promise<void> {
   const KEY = 'cat-migrated-v1'

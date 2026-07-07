@@ -35,13 +35,12 @@ function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: 
   if (typeof answerIndex !== 'number' || ![0, 1, 2, 3].includes(answerIndex))
     return { error: `${where} (${id}): answerIndex は0〜3` }
 
-  const origin = o.origin === 'original' ? 'original' : 'official'
-
+  // オリジナル問題は廃止。取込んだ問題はすべて official として扱う。
   seenIds.add(id)
   return {
     q: {
       id,
-      origin,
+      origin: 'official',
       category,
       subcategory: typeof o.subcategory === 'string' ? o.subcategory : undefined,
       stem,

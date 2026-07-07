@@ -11,7 +11,6 @@ export default function ImportScreen() {
   const fileRef = useRef<HTMLInputElement>(null)
 
   const officialCount = (questions ?? []).filter((q) => q.origin === 'official').length
-  const originalCount = (questions ?? []).filter((q) => q.origin === 'original').length
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -44,11 +43,7 @@ export default function ImportScreen() {
         <div className="statrow">
           <div className="stat">
             <div className="num">{officialCount}</div>
-            <div className="lbl">公式（取込）</div>
-          </div>
-          <div className="stat">
-            <div className="num">{originalCount}</div>
-            <div className="lbl">オリジナル</div>
+            <div className="lbl">取込済みの問題数</div>
           </div>
         </div>
 

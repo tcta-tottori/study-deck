@@ -33,10 +33,8 @@ export default function Exam({ onExit }: { onExit: () => void }) {
 
   async function start() {
     const all = await db.questions.toArray()
-    const official = shuffle(all.filter((q) => q.origin === 'official'))
-    const original = shuffle(all.filter((q) => q.origin === 'original'))
-    // official優先で40問。不足分はoriginalで補完。
-    const picked = [...official, ...original].slice(0, Math.min(EXAM_N, all.length))
+    // 取込んだ公式過去問から40問ランダム出題（不足時は在庫分だけ）。
+    const picked = shuffle(all).slice(0, Math.min(EXAM_N, all.length))
     setQuestions(picked)
     setAnswers(new Array(picked.length).fill(-1))
     setCur(0)
@@ -130,7 +128,7 @@ export default function Exam({ onExit }: { onExit: () => void }) {
           <p>・試験中は正誤を表示しません（提出後に採点）</p>
           <p>・合格ライン：{PASS_N}問（60点）</p>
           <p className="muted">
-            取り込み済み公式問題を優先出題します（現在の総問題数 {available}問）。
+            取り込んだ公式問題から出題します（現在の総問題数 {available}問）。
           </p>
         </div>
         <button className="btn primary" disabled={available === 0} onClick={start}>
