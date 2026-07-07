@@ -5,7 +5,7 @@ import './styles.css'
 import { ensureSeeded, migrateThemeBase, migrateCategories } from './db/seed'
 
 // PWA Service Worker（vite-plugin-pwa の仮想モジュール）
-// prompt 運用：更新があっても表示中に自動リロードせず、次回起動時に新版を適用する。
+// autoUpdate 運用：新バージョンを検知したら自動で有効化し、最新を確実に配信する。
 import { registerSW } from 'virtual:pwa-register'
 registerSW({ immediate: true })
 
