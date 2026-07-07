@@ -8,7 +8,6 @@ import Dashboard from './screens/Dashboard'
 import ImportScreen from './screens/Import'
 import Settings from './screens/Settings'
 import Toast, { ToastCtx, useToastState } from './components/Toast'
-import Loading from './components/Loading'
 import { scheduleDailyReminder } from './lib/reminder'
 import { Icon, type IconName } from './components/Icon'
 
@@ -61,10 +60,10 @@ export default function App() {
     const t = setTimeout(() => setBailout(true), 6000)
     return () => clearTimeout(t)
   }, [])
-  // 読込画面は最低1秒は表示（一瞬で消えるチラつきを防ぐ）
+  // 起動ローダー（index.html の #boot）は最低2秒は表示（一瞬で消えるチラつきを防ぐ）
   const [minShown, setMinShown] = useState(false)
   useEffect(() => {
-    const t = setTimeout(() => setMinShown(true), 1000)
+    const t = setTimeout(() => setMinShown(true), 2000)
     return () => clearTimeout(t)
   }, [])
 
@@ -121,11 +120,19 @@ export default function App() {
     if (app) app.scrollTop = 0
   }, [view])
 
-  // 初期データが揃い、かつ最低表示時間（1秒）を満たすまではローディング表示
-  // （数値の0ちらつき・読込画面の一瞬消えを防ぐ）。
-  // 万一データ取得が詰まっても数秒でアプリ表示へ移行し、無限ローディングを防ぐ。
+  // 起動ローダー（index.html の #boot）は「初期データが揃い かつ 最低表示時間（2秒）を満たす」
+  // まで表示し、その後フェードして除去する。ローダーは #boot の1枚のみ（2回表示を防止）。
+  // 万一データ取得が詰まってもタイムアウト保険で数秒後に必ず除去する。
   const ready = questions !== undefined && records !== undefined && activity !== undefined
-  if ((!ready || !minShown) && !bailout) return <Loading />
+  useEffect(() => {
+    if (!((ready && minShown) || bailout)) return
+    const boot = document.getElementById('boot')
+    if (!boot) return
+    boot.classList.add('boot-hide')
+    const t = setTimeout(() => boot.remove(), 420)
+    return () => clearTimeout(t)
+  }, [ready, minShown, bailout])
+
   const safeQuestions = questions ?? []
   const safeRecords = records ?? new Map()
   const safeActivity = activity ?? []
