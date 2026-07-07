@@ -116,7 +116,6 @@ export default function App() {
         {view !== 'quiz' && view !== 'exam' && (
           <nav className="nav">
             <NavBtn label="ホーム" icon="home" active={view === 'home'} onClick={() => go('home')} />
-            <NavBtn label="学習" icon="bolt" active={false} onClick={() => startQuiz({})} />
             <NavBtn label="成績" icon="chart" active={view === 'dashboard'} onClick={() => go('dashboard')} />
             <NavBtn label="取込" icon="import" active={view === 'import'} onClick={() => go('import')} />
             <NavBtn label="設定" icon="gear" active={view === 'settings'} onClick={() => go('settings')} />

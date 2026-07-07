@@ -62,6 +62,13 @@ export default function Home({
   return (
     <>
       <header className="appbar">
+        <img
+          className="app-logo"
+          src={`${import.meta.env.BASE_URL}favicon-48.png`}
+          alt=""
+          width={28}
+          height={28}
+        />
         <h1>StudyDrill</h1>
         <span className="spacer" />
         <button className="iconbtn" onClick={() => go('dashboard')} aria-label="成績">

@@ -12,7 +12,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 表示直後にSWが更新→自動リロードして画面がちらつくのを防ぐ。
+      // 新バージョンは待機し、次回の起動時に適用する（読み込み完了後に勝手にリフレッシュしない）。
+      registerType: 'prompt',
       includeAssets: ['favicon-32.png', 'favicon-48.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'StudyDrill',
