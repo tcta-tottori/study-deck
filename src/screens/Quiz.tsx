@@ -11,7 +11,7 @@ import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
 import { BrandIcon } from '../components/BrandIcon'
 import { useTodayProgress } from '../hooks/useAppData'
-import { buildAiPrompt, aiServiceUrl, copyText, AI_SERVICES, type AiService } from '../lib/askAi'
+import { buildAiPrompt, aiServiceUrl, copyText, copyTextSync, AI_SERVICES, type AiService } from '../lib/askAi'
 
 export interface QuizConfig {
   limit?: number
@@ -304,12 +304,26 @@ function Explanation({
 
   // 問題内容を詳しく説明してもらうプロンプトを用意し、AIアプリ/サイトを開く。
   // プロンプトは必ずクリップボードへコピーしておき、自動入力されない場合も貼り付けられるようにする。
-  async function askAi(service: AiService) {
+  function askAi(service: AiService) {
     const prompt = buildAiPrompt(question)
-    // クリックのユーザー操作コンテキストを保つため、コピーは待たずに発火してから開く
+    const url = aiServiceUrl(service, prompt)
+    if (service === 'gemini') {
+      // Gemini はURLプレフィル未対応で、受け渡しはクリップボードのみ。
+      // 新規タブでフォーカスが外れると writeText は失敗するため、
+      // 開く前に同期コピーで確実に確定させてから、同一ジェスチャ内で開く。
+      const ok = copyTextSync(prompt)
+      window.open(url, '_blank', 'noopener,noreferrer')
+      toast(
+        ok
+          ? 'プロンプトをコピーしました。Geminiのチャット欄に貼り付けて質問してください。'
+          : 'Geminiを開きました。「コピー」ボタンでプロンプトを取得して貼り付けてください。',
+      )
+      return
+    }
+    // Claude / ChatGPT はURLに載せて自動入力される。コピーは貼り付け用の保険。
     void copyText(prompt)
-    window.open(aiServiceUrl(service, prompt), '_blank', 'noopener,noreferrer')
-    toast('プロンプトをコピーしました。開いたアプリのチャット欄に貼り付けても質問できます。')
+    window.open(url, '_blank', 'noopener,noreferrer')
+    toast('プロンプトをコピーしました。開いたチャット欄に貼り付けても質問できます。')
   }
 
   async function copyAiPrompt() {
