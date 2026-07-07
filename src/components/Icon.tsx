@@ -140,15 +140,34 @@ const PATHS: Record<IconName, ReactElement> = {
   chevron: <path d="M6 9l6 6 6-6" />,
   // チェック
   check: <path d="M5 12.5l4.5 4.5L19 7" />,
-  // 縦横切替（上下2本の折れ矢印を斜めにずらして配置。矢じりを大きくして矢印を明確に）
+  // 縦横切替（端末回転アイコン：傾けた縦長スマホ＋回転を示す2本の矢印）
   swap: (
     <>
-      {/* ↖ 上向きの矢印：左の矢じり→頂点→右へ下る（上半分） */}
-      <path d="M5 9.5 L11 4 L17 10.5" />
-      <path d="M5 9.5 L10 9.5 M5 9.5 L5 14.5" />
-      {/* ↘ 下向きの矢印：左から下る→谷→右の矢じり（下半分） */}
-      <path d="M7 13.5 L13 20 L19 14.5" />
-      <path d="M19 14.5 L14 14.5 M19 14.5 L19 9.5" />
+      {/* 端末（縦長スマホ）。塗りは半透明で本体を表現し、輪郭を描く */}
+      <rect
+        x="7.25"
+        y="5"
+        width="9.5"
+        height="14"
+        rx="2.3"
+        transform="rotate(-40 12 12)"
+        fill="currentColor"
+        fillOpacity={0.2}
+        stroke="currentColor"
+        strokeWidth={1.7}
+        strokeLinejoin="round"
+      />
+      {/* 回転を示す2本の矢印（右上・左下） */}
+      <path
+        fill="currentColor"
+        stroke="none"
+        d="M16.48 2.52c3.27 1.55 5.61 4.72 5.97 8.48h1.5C23.44 4.84 18.29 0 12 0l-.66.03 3.81 3.81 1.33-1.32z"
+      />
+      <path
+        fill="currentColor"
+        stroke="none"
+        d="M7.52 21.48C4.25 19.94 1.91 16.76 1.55 13H.05C.56 19.16 5.71 24 12 24l.66-.03-3.81-3.81-1.33 1.32z"
+      />
     </>
   ),
   // 太陽（ライトモード）

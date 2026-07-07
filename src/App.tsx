@@ -246,7 +246,7 @@ export default function App() {
               aria-label={landscape ? '縦画面に切り替え' : '横画面に切り替え'}
               aria-pressed={landscape}
             >
-              <Icon name="swap" size={22} strokeWidth={2.1} linecap="butt" linejoin="miter" />
+              <Icon name="swap" size={22} />
             </button>
           </div>
         )}
