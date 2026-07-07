@@ -199,6 +199,100 @@ button {
 .appbar .spacer {
   flex: 1;
 }
+
+/* --- ホーム上部の科目名（タップで科目切替） --- */
+.subject-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 4px 8px 4px 4px;
+  border-radius: 12px;
+  color: var(--text);
+}
+.subject-pick:active {
+  background: var(--surface-2);
+}
+.subject-name {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.subject-caret {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--text-dim);
+}
+
+/* 科目選択モーダル（ヘッダー直下にドロップ） */
+.subject-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(10, 17, 34, 0.4);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: calc(var(--safe-t) + 62px) 20px 20px;
+  animation: scrimIn 0.18s ease;
+}
+.subject-sheet {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 14px;
+  animation: sheetDrop 0.22s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+@keyframes sheetDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.subject-sheet-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-dim);
+  padding: 4px 8px 10px;
+}
+.subject-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 13px 14px;
+  border-radius: 13px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.subject-opt:active {
+  background: var(--surface-2);
+}
+.subject-opt.active {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+.subject-opt-name {
+  min-width: 0;
+}
+.subject-note {
+  font-size: 12px;
+  padding: 8px 8px 2px;
+  margin: 0;
+}
 .iconbtn {
   width: 42px;
   height: 42px;

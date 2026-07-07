@@ -1,11 +1,12 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { View } from '../App'
 import type { QuizConfig } from './Quiz'
 import { computeStreak, dayKey, daysUntil, formatJpDate } from '../lib/dateutil'
 import { categoryStats, dueCount, overallAccuracy } from '../lib/stats'
 import { categoryLabel, type AppSettings, type Question, type StudyRecord } from '../types'
-import type { DayActivity } from '../db/db'
+import { updateSettings, type DayActivity } from '../db/db'
 import { categoryColor } from '../lib/categoryMap'
+import { SUBJECTS, getSubject } from '../lib/subjects'
 import { Icon } from '../components/Icon'
 import Reveal from '../components/Reveal'
 
@@ -28,6 +29,14 @@ export default function Home({
   const nowRef = useRef(Date.now())
   const now = nowRef.current
   const todayKey = dayKey(now)
+
+  // 学習中の科目（試験）。ヘッダー名タップ or 設定から変更可能。
+  const subject = getSubject(settings.subjectId)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  function chooseSubject(id: string) {
+    setPickerOpen(false)
+    if (id !== settings.subjectId) void updateSettings({ subjectId: id })
+  }
 
   const { streak, todayCount, due, acc, cats } = useMemo(() => {
     const days = new Set(activity.map((a) => a.day))
@@ -65,8 +74,45 @@ export default function Home({
           width={28}
           height={28}
         />
-        <h1>StudyDrill</h1>
+        <button
+          className="subject-pick"
+          onClick={() => setPickerOpen(true)}
+          aria-haspopup="dialog"
+          aria-label="科目を変更"
+        >
+          <span className="subject-name">{subject.name}</span>
+          <span className="subject-caret">
+            <Icon name="chevron" size={16} strokeWidth={2.2} />
+          </span>
+        </button>
       </header>
+
+      {pickerOpen && (
+        <div className="subject-backdrop" onClick={() => setPickerOpen(false)}>
+          <div
+            className="subject-sheet"
+            role="dialog"
+            aria-label="科目を選択"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="subject-sheet-title">科目を選択</div>
+            {SUBJECTS.map((sub) => {
+              const active = sub.id === subject.id
+              return (
+                <button
+                  key={sub.id}
+                  className={`subject-opt${active ? ' active' : ''}`}
+                  onClick={() => chooseSubject(sub.id)}
+                >
+                  <span className="subject-opt-name">{sub.name}</span>
+                  {active && <Icon name="check" size={18} strokeWidth={2.4} />}
+                </button>
+              )
+            })}
+            <p className="muted subject-note">他の科目は今後追加予定です。</p>
+          </div>
+        </div>
+      )}
 
       <div className="screen">
         <div className="home-grid">

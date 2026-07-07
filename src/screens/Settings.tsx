@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getSettings, updateSettings, db } from '../db/db'
 import type { AppSettings } from '../types'
+import { SUBJECTS, getSubject } from '../lib/subjects'
 import { notificationPermission, requestNotificationPermission } from '../lib/reminder'
 import { useToast } from '../components/Toast'
 
@@ -65,6 +66,26 @@ export default function Settings({ onBack }: { onBack: () => void }) {
         <h1>設定</h1>
       </header>
       <div className="screen">
+        <div className="card">
+          <h2>科目</h2>
+          <label className="field" style={{ marginBottom: 0 }}>
+            <span className="lbl">学習する試験科目</span>
+            <select
+              value={getSubject(s.subjectId).id}
+              onChange={(e) => patch({ subjectId: e.target.value })}
+            >
+              {SUBJECTS.map((sub) => (
+                <option key={sub.id} value={sub.id}>
+                  {sub.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+            ※ 他の科目は今後追加予定です。ホーム上部の科目名からも切り替えられます。
+          </p>
+        </div>
+
         <div className="card">
           <h2>学習</h2>
           <label className="field">
@@ -170,7 +191,7 @@ export default function Settings({ onBack }: { onBack: () => void }) {
         </div>
 
         <p className="muted" style={{ textAlign: 'center', fontSize: 12 }}>
-          StudyDrill · 生産管理プランニング3級 学習アプリ · 端末内で完結・オフライン対応
+          StudyDrill · {getSubject(s.subjectId).name} 学習アプリ · 端末内で完結・オフライン対応
         </p>
         <p className="muted" style={{ textAlign: 'center', fontSize: 11, marginTop: 4 }}>
           最終更新: {formatBuildTime()}
