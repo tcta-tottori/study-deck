@@ -14,6 +14,13 @@ import { Icon, type IconName } from './components/Icon'
 
 export type View = 'home' | 'quiz' | 'exam' | 'dashboard' | 'import' | 'settings'
 
+const NAV_ITEMS: { view: View; label: string; icon: IconName }[] = [
+  { view: 'home', label: 'ホーム', icon: 'home' },
+  { view: 'dashboard', label: '成績', icon: 'chart' },
+  { view: 'import', label: '取込', icon: 'import' },
+  { view: 'settings', label: '設定', icon: 'gear' },
+]
+
 function applyTheme(mode: 'auto' | 'light' | 'dark') {
   const root = document.documentElement
   let resolved = mode
@@ -36,6 +43,18 @@ export default function App() {
   const toast = useToastState()
   // 横画面は即時反映のためローカル状態で持ち、設定にも保存
   const [landscape, setLandscapeState] = useState(false)
+  // PC相当のワイド画面か（メディアクエリを追従）。横画面トグルONでも「ワイド扱い」にする。
+  const [pcWidth, setPcWidth] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 860px)').matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 860px)')
+    const h = () => setPcWidth(mq.matches)
+    mq.addEventListener('change', h)
+    return () => mq.removeEventListener('change', h)
+  }, [])
+  // 縦画面の下メニュー（ハンバーガー）の開閉
+  const [menuOpen, setMenuOpen] = useState(false)
   // ローディングのタイムアウト保険（詰まっても数秒でアプリ表示へ）
   const [bailout, setBailout] = useState(false)
   useEffect(() => {
@@ -87,6 +106,13 @@ export default function App() {
 
   const go = useCallback((v: View) => setView(v), [])
 
+  // ワイド（PC/横画面）= サイドバー表示。それ以外（縦画面スマホ）= ハンバーガー。
+  const wide = landscape || pcWidth
+  // 画面遷移・レイアウト変化でハンバーガーメニューは閉じる
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [view, wide])
+
   // 初期データが揃い、かつ最低表示時間（1秒）を満たすまではローディング表示
   // （数値の0ちらつき・読込画面の一瞬消えを防ぐ）。
   // 万一データ取得が詰まっても数秒でアプリ表示へ移行し、無限ローディングを防ぐ。
@@ -96,10 +122,12 @@ export default function App() {
   const safeRecords = records ?? new Map()
   const safeActivity = activity ?? []
 
+  const showChrome = view !== 'quiz' && view !== 'exam'
+
   return (
     <ToastCtx.Provider value={toast.show}>
       <div className={`rot${landscape ? ' rot-on' : ''}`}>
-        <div className="app">
+        <div className={`app${wide ? ' wide' : ''}`}>
         {view === 'home' && (
           <Home
             onStartQuiz={startQuiz}
@@ -108,8 +136,6 @@ export default function App() {
             questions={safeQuestions}
             records={safeRecords}
             activity={safeActivity}
-            landscape={landscape}
-            setLandscape={setLandscape}
           />
         )}
         {view === 'quiz' && <Quiz config={quizConfig} onExit={() => setView('home')} />}
@@ -120,7 +146,30 @@ export default function App() {
         {view === 'import' && <ImportScreen />}
         {view === 'settings' && <Settings onBack={() => setView('home')} />}
 
-        {view !== 'quiz' && view !== 'exam' && (
+        {/* 縦横切替トグル（スマホ幅のときのみ／上部メニュー跡地）。アイコンで表示。 */}
+        {showChrome && !pcWidth && (
+          <div className="otoggle" role="group" aria-label="画面の向き">
+            <button
+              className={!landscape ? 'on' : ''}
+              onClick={() => setLandscape(false)}
+              aria-label="縦画面"
+              aria-pressed={!landscape}
+            >
+              <Icon name="phone" size={20} />
+            </button>
+            <button
+              className={landscape ? 'on' : ''}
+              onClick={() => setLandscape(true)}
+              aria-label="横画面"
+              aria-pressed={landscape}
+            >
+              <Icon name="monitor" size={20} />
+            </button>
+          </div>
+        )}
+
+        {/* ナビ：ワイド（PC/横画面）=左サイドバー、縦画面=右下ハンバーガー＋ボトムシート */}
+        {showChrome && wide && (
           <nav className="nav">
             <div className="nav-brand" aria-hidden="true">
               <img
@@ -132,11 +181,48 @@ export default function App() {
               />
               <span>StudyDrill</span>
             </div>
-            <NavBtn label="ホーム" icon="home" active={view === 'home'} onClick={() => go('home')} />
-            <NavBtn label="成績" icon="chart" active={view === 'dashboard'} onClick={() => go('dashboard')} />
-            <NavBtn label="取込" icon="import" active={view === 'import'} onClick={() => go('import')} />
-            <NavBtn label="設定" icon="gear" active={view === 'settings'} onClick={() => go('settings')} />
+            {NAV_ITEMS.map((it) => (
+              <NavBtn
+                key={it.view}
+                label={it.label}
+                icon={it.icon}
+                active={view === it.view}
+                onClick={() => go(it.view)}
+              />
+            ))}
           </nav>
+        )}
+
+        {showChrome && !wide && (
+          <>
+            {menuOpen && <div className="nav-scrim" onClick={() => setMenuOpen(false)} />}
+            <div className={`nav-sheet${menuOpen ? ' open' : ''}`} role="menu" aria-hidden={!menuOpen}>
+              {NAV_ITEMS.map((it) => (
+                <button
+                  key={it.view}
+                  role="menuitem"
+                  className={`nav-sheet-item${view === it.view ? ' active' : ''}`}
+                  onClick={() => {
+                    go(it.view)
+                    setMenuOpen(false)
+                  }}
+                >
+                  <span className="ic">
+                    <Icon name={it.icon} size={22} strokeWidth={view === it.view ? 2 : 1.8} />
+                  </span>
+                  <span>{it.label}</span>
+                </button>
+              ))}
+            </div>
+            <button
+              className={`nav-fab${menuOpen ? ' open' : ''}`}
+              aria-label="メニュー"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((o) => !o)}
+            >
+              <Icon name="menu" size={24} strokeWidth={2} />
+            </button>
+          </>
         )}
 
         {toast.node && <Toast>{toast.node}</Toast>}
