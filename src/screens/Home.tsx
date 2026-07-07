@@ -71,8 +71,8 @@ export default function Home({
           className="app-logo"
           src={`${import.meta.env.BASE_URL}favicon-48.png`}
           alt=""
-          width={34}
-          height={34}
+          width={40}
+          height={40}
         />
         <button
           className="subject-pick"
