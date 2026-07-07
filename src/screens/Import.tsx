@@ -40,7 +40,7 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
     <>
       <header className="appbar">
         <BackHome onClick={onHome} />
-        <h1>問題インポート</h1>
+        <h1>取込</h1>
       </header>
       <div className="screen">
         <div className="statrow">

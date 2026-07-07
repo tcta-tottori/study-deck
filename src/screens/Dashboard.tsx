@@ -48,7 +48,7 @@ export default function Dashboard({
     <>
       <header className="appbar">
         <BackHome onClick={onHome} />
-        <h1>成績ダッシュボード</h1>
+        <h1>成績</h1>
       </header>
       <div className="screen">
         {totalAnswered === 0 && (
