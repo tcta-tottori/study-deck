@@ -161,14 +161,12 @@ export default function Home({
             <button className="go" onClick={() => onStartQuiz({})}>
               <Icon name="bolt" size={19} /> 今すぐ1問
             </button>
-            <button className="mini" onClick={() => onStartQuiz({ wrongOnly: true })}>
-              <Icon name="refresh" size={19} />
-              間違い
-              <br />
-              だけ
-            </button>
           </div>
           <div className="hero-sub">
+            <button className="hero-review" onClick={() => onStartQuiz({ wrongOnly: true })}>
+              <Icon name="refresh" size={18} />
+              間違い復習
+            </button>
             <div>
               <div className="v">{due}</div>
               <div className="k">復習が来ている</div>
@@ -185,32 +183,29 @@ export default function Home({
         </section>
         </Reveal>
 
-        {/* 本番シミュレーション（商品カード風） */}
-        <div className="sec-head">
-          <h2>試験対策</h2>
-        </div>
+        {/* 試験形式（今日の学習と同様、要素を1枠にまとめた赤いカード） */}
         <Reveal>
-        <div className="prodcard">
-          <div className="pc-title">
-            <span className="pc-ic">
+        <section className="examcard">
+          <div className="ec-title">
+            <span className="ec-ic">
               <Icon name="clipboard" size={20} />
             </span>
-            本番シミュレーション
+            試験形式
           </div>
-          <div className="pc-desc">公式問題を優先して40問・制限時間つき。本番と同じ形式で実力チェック。</div>
-          <div className="pc-figure">
+          <div className="ec-desc">公式問題を優先して40問・制限時間つき。本番と同じ形式で実力チェック。</div>
+          <div className="ec-figure">
             <span className="big">24</span>
             <span className="unit">問正解で合格（60点）</span>
-            <button className="pc-action filled" onClick={() => go('exam')}>
-              開始する
-            </button>
           </div>
+          <button className="ec-action" onClick={() => go('exam')}>
+            開始する
+          </button>
           <button className="pc-sublink" onClick={() => go('exams')}>
             <Icon name="chart" size={16} />
             受験履歴・復習を見る
             <Icon name="arrow" size={15} />
           </button>
-        </div>
+        </section>
         </Reveal>
         </div>
 
