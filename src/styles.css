@@ -1058,16 +1058,9 @@ button {
   color: #fff3ea;
   border-color: transparent;
 }
-/* Gemini：青ベースに赤・黄・緑が混ざるGoogleカラーのグラデ背景・白文字/白アイコン */
+/* Gemini：青→紫のグラデ背景・白文字/白アイコン */
 .ai-chip.brand-gemini {
-  background: linear-gradient(
-    100deg,
-    #4285f4 0%,
-    #4285f4 28%,
-    #34a853 52%,
-    #fbbc05 74%,
-    #ea4335 100%
-  );
+  background: linear-gradient(100deg, #4285f4 0%, #6b5ce7 55%, #9b4dea 100%);
   color: #ffffff;
   border-color: transparent;
 }
