@@ -46,25 +46,36 @@
           opacity: 0.3;
         }
       }
-      /* ページめくりの本（従来アニメ）＋その下に固定の表紙ライン（もう一層） */
+      /* ページめくりの本（従来アニメ）＋その下に固定の分厚いページ束（もう一層） */
       .bootbook {
-        position: relative;
-        display: grid;
-        place-items: center;
-        padding-bottom: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
       }
-      /* 本の下に固定でもう一層（表紙の輪郭線）。アニメーションしない。 */
-      .bookbase {
-        position: absolute;
-        left: 50%;
-        bottom: 0;
-        transform: translateX(-50%);
-        width: 106px;
-        height: 15px;
+      /* 分厚いページ束（表紙のすぐ下に固定・アニメーションしない）。
+         本の底に密着させ、内部に複数のページ端の線を重ねて厚い本に見せる。 */
+      .bookthick {
+        width: 90px;
+        height: 20px;
+        margin-top: -4px;
         box-sizing: border-box;
         border: 2px solid #2347c5;
-        border-top: none;
-        border-radius: 0 0 11px 11px;
+        border-radius: 1px 1px 9px 9px;
+        background: #fff;
+        padding: 3px 6px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .bookthick i {
+        height: 1.5px;
+        border-radius: 2px;
+        background: #2347c5;
+        opacity: 0.42;
+      }
+      .bookthick i:last-child {
+        opacity: 0.28;
       }
       /* 3D的な本のページめくり */
       .bookflip {
@@ -141,7 +152,9 @@
             <span class="pg"></span>
           </div>
         </div>
-        <span class="bookbase"></span>
+        <div class="bookthick" aria-hidden="true">
+          <i></i><i></i><i></i><i></i>
+        </div>
       </div>
       <div class="bl-text">Loading</div>
     </div>
