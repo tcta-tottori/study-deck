@@ -168,32 +168,8 @@ export default function App() {
           </div>
         )}
 
-        {/* ナビ：ワイド（PC/横画面）=左サイドバー、縦画面=右下ハンバーガー＋ボトムシート */}
-        {showChrome && wide && (
-          <nav className="nav">
-            <div className="nav-brand" aria-hidden="true">
-              <img
-                className="nav-brand-logo"
-                src={`${import.meta.env.BASE_URL}favicon-48.png`}
-                alt=""
-                width={30}
-                height={30}
-              />
-              <span>StudyDrill</span>
-            </div>
-            {NAV_ITEMS.map((it) => (
-              <NavBtn
-                key={it.view}
-                label={it.label}
-                icon={it.icon}
-                active={view === it.view}
-                onClick={() => go(it.view)}
-              />
-            ))}
-          </nav>
-        )}
-
-        {showChrome && !wide && (
+        {/* ナビ：縦画面/横画面/PC いずれも右下ハンバーガー＋下から立ち上がるボトムシート */}
+        {showChrome && (
           <>
             {menuOpen && <div className="nav-scrim" onClick={() => setMenuOpen(false)} />}
             <div className={`nav-sheet${menuOpen ? ' open' : ''}`} role="menu" aria-hidden={!menuOpen}>
@@ -232,23 +208,3 @@ export default function App() {
   )
 }
 
-function NavBtn({
-  label,
-  icon,
-  active,
-  onClick,
-}: {
-  label: string
-  icon: IconName
-  active: boolean
-  onClick: () => void
-}) {
-  return (
-    <button className={active ? 'active' : ''} onClick={onClick}>
-      <span className="ic">
-        <Icon name={icon} size={22} strokeWidth={active ? 2 : 1.8} />
-      </span>
-      {label}
-    </button>
-  )
-}

@@ -1452,14 +1452,10 @@ svg.line {
   margin: 0;
   min-height: 100%;
 }
-/* サイドバー分の余白（ナビ表示中のみ。クイズ/試験中は全幅） */
-.app.wide:has(> nav.nav) {
-  padding-left: 248px;
-}
 /* 本文（ヘッダー＋スクロール領域）は読みやすい幅に集約して中央寄せ */
 .app.wide .appbar,
 .app.wide .screen {
-  max-width: 960px;
+  max-width: 1040px;
   margin-left: auto;
   margin-right: auto;
   width: 100%;
@@ -1468,77 +1464,40 @@ svg.line {
   padding-top: 22px;
 }
 .app.wide .screen {
-  padding: 10px 28px 48px;
-}
-/* 下部固定タブ → 左サイドバー（縦積み） */
-.app.wide .nav {
-  top: 0;
-  bottom: 0;
-  right: auto;
-  width: 248px;
-  max-width: none;
-  margin: 0;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: stretch;
-  gap: 6px;
-  border-top: none;
-  border-right: 1px solid var(--border);
-  padding: 20px 16px calc(var(--safe-b) + 20px);
-}
-.app.wide .nav button {
-  flex: 0 0 auto;
-  flex-direction: row;
-  justify-content: flex-start;
-  gap: 14px;
-  padding: 13px 16px;
-  font-size: 15px;
-  border-radius: 14px;
-}
-.app.wide .nav button .ic {
-  height: auto;
-}
-/* サイドバー見出し（ロゴ＋アプリ名） */
-.app.wide .nav-brand {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 6px 12px 16px;
-  margin-bottom: 6px;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: var(--text);
-  border-bottom: 1px solid var(--border);
-}
-.app.wide .nav-brand-logo {
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  box-shadow: var(--shadow-sm);
-}
-/* サイドバー化に伴い、ヘッダー左のロゴは重複するので隠す（アプリ名は残す） */
-.app.wide .appbar .app-logo {
-  display: none;
-}
-/* 横幅を活かすレイアウト：カテゴリ別は2カラム */
-.app.wide .catlist {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  padding: 10px 28px 56px;
 }
 .app.wide .hero-cta .go {
   font-size: 17px;
 }
 
-/* さらに広い実PC画面：本文幅を広げカテゴリ3カラム（横画面フレーム幅では発火しない） */
+/* ホームの2カラム土台。既定（スマホ縦）は透過し従来どおり1カラム縦並び。 */
+.home-grid,
+.home-main,
+.home-side {
+  display: contents;
+}
+/* PCホーム：左半分＝今日の学習＋試験対策、右半分＝カテゴリ別 */
+.app.wide .home-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  align-items: start;
+}
+.app.wide .home-main,
+.app.wide .home-side {
+  display: block;
+  min-width: 0;
+}
+/* 右カラム先頭の見出しは上端をヒーローと揃える */
+.app.wide .home-side > .sec-head {
+  margin-top: 0;
+}
+
+/* さらに広い実PC画面：本文幅を少し広げる */
 @media (min-width: 1180px) {
   .app.wide .appbar,
   .app.wide .screen {
-    max-width: 1080px;
-  }
-  .app.wide .catlist {
-    grid-template-columns: 1fr 1fr 1fr;
+    max-width: 1140px;
   }
 }
 
@@ -1587,9 +1546,6 @@ svg.line {
 }
 .nav-fab:active {
   transform: scale(0.93);
-}
-.nav-fab.open {
-  transform: rotate(90deg);
 }
 .nav-scrim {
   position: fixed;

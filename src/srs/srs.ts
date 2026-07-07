@@ -11,6 +11,13 @@ export const BOX_INTERVALS: Record<Box, number> = {
   5: 14 * DAY,
 }
 
+/**
+ * 誤答の再学習ステップ（ms）。誤答を dueAt=now にすると学習を開き直した直後に
+ * 同じ問題が先頭へ即再登場し「回答が反映されていない」ように見えるため、
+ * 少し先送りして直後の再出題を防ぐ（同日中の復習は維持）。
+ */
+export const RELEARN_STEP = 10 * 60 * 1000 // 10分
+
 export function newRecord(questionId: string, now: number): StudyRecord {
   return {
     questionId,
@@ -43,7 +50,7 @@ export function applyAnswer(
   return {
     ...rec,
     box: 1,
-    dueAt: now, // 当日中に再登場
+    dueAt: now + RELEARN_STEP, // 少し先送り（直後の即再登場を防止・同日中に復習）
     lastAnswered: now,
     wrongCount: rec.wrongCount + 1,
     lastWrongChoice: chosen as StudyRecord['lastWrongChoice'],

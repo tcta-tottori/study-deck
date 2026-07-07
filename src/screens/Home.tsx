@@ -69,6 +69,8 @@ export default function Home({
       </header>
 
       <div className="screen">
+        <div className="home-grid">
+        <div className="home-main">
         {/* 試験までのカウントダウン（タップで設定へ） */}
         <button className="countdown" onClick={() => go('settings')}>
           <span className="cd-ic">
@@ -159,7 +161,9 @@ export default function Home({
           </button>
         </div>
         </Reveal>
+        </div>
 
+        <div className="home-side">
         {/* カテゴリ別（正答率つき・タップでそのカテゴリを出題） */}
         <div className="sec-head">
           <h2>カテゴリ別に学習</h2>
@@ -198,6 +202,8 @@ export default function Home({
           })}
         </div>
         </Reveal>
+        </div>
+        </div>
       </div>
     </>
   )

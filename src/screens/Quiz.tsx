@@ -6,11 +6,10 @@ import { generateExplanation } from '../lib/ai'
 import { getSettings } from '../db/db'
 import { categoryLabel, type Question } from '../types'
 import { categoryColor } from '../lib/categoryMap'
-import { formatClock } from '../lib/dateutil'
+import { formatClock, dayKey } from '../lib/dateutil'
 import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
 import { BrandIcon } from '../components/BrandIcon'
-import { useTodayProgress } from '../hooks/useAppData'
 import { buildAiPrompt, aiServiceUrl, copyText, copyTextSync, AI_SERVICES, type AiService } from '../lib/askAi'
 
 export interface QuizConfig {
@@ -30,6 +29,12 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
   const [answeredCount, setAnsweredCount] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
   const [box, setBox] = useState<number | null>(null)
+  // 今日の目標ゲージ用のベース値（このセッション開始前の当日回答数・目標）。
+  // 表示は「ベース + このセッションの回答数」で即時反映し、DB/liveQueryの反映遅延に依存しない。
+  const [baseProgress, setBaseProgress] = useState<{ count: number; goal: number }>({
+    count: 0,
+    goal: 20,
+  })
   const [remaining, setRemaining] = useState(config.timeboxSec ?? 0)
   const [timeUp, setTimeUp] = useState(false)
   const touchStartX = useRef<number | null>(null)
@@ -60,6 +65,19 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
     }
   }, [config])
 
+  // セッション開始時点の当日回答数・目標を1回だけ取得（以降は加算で即時表示）
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      const s = await getSettings()
+      const a = await db.activity.get(dayKey(Date.now()))
+      if (alive) setBaseProgress({ count: a?.count ?? 0, goal: s.dailyGoal })
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
   // タイムボックス（3分など）
   useEffect(() => {
     if (!config.timeboxSec) return
@@ -83,8 +101,9 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
     if (answered || answeringRef.current || !current) return
     answeringRef.current = true
     setChosen(i)
-    const correct = await recordAnswer(current, i)
+    // 楽観更新：ゲージ・回答数をDB反映を待たず即時に進める
     setAnsweredCount((c) => c + 1)
+    const correct = await recordAnswer(current, i)
     if (correct) setCorrectCount((c) => c + 1)
     // 更新後のboxを表示
     const rec = await db.studyRecords.get(current.id)
@@ -183,7 +202,7 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
             </span>
           )}
         </div>
-        <GoalMeter />
+        <GoalMeter count={baseProgress.count + answeredCount} goal={baseProgress.goal} />
       </div>
 
       {/* 中央：問題文＋選択肢（長ければスクロール）。採点後は少し暗くして解説へ集中させる */}
@@ -231,9 +250,8 @@ function ResultLike({ title, children }: { title: string; children: React.ReactN
   )
 }
 
-/** 回答中に今日の目標達成度をフローティングウィンドウでリアルタイム表示（回答するたび更新） */
-function GoalMeter() {
-  const { count, goal } = useTodayProgress()
+/** 回答中に今日の目標達成度をフローティングウィンドウでリアルタイム表示（回答するたび即時更新） */
+function GoalMeter({ count, goal }: { count: number; goal: number }) {
   const pct = Math.min(100, Math.round((count / goal) * 100))
   const done = count >= goal
   // 表示直後は幅0で描画し、少し置いてから現在値へ切り替えて「0→現在」を滑らかに伸ばす。
