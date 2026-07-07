@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie'
 import type { Question, StudyRecord, ExamResult, AppSettings } from '../types'
+import { DEFAULT_SUBJECT_ID } from '../lib/subjects'
 
 /** 1日の学習量ログ（ストリーク・日次目標・活動グラフ用） */
 export interface DayActivity {
@@ -31,6 +32,7 @@ export const db = new StudyDB()
 
 export const DEFAULT_SETTINGS: AppSettings = {
   key: 'app',
+  subjectId: DEFAULT_SUBJECT_ID,
   dailyGoal: 20,
   interleave: true,
   examDurationSec: 110 * 60, // 暫定110分

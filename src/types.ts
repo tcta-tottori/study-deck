@@ -73,6 +73,8 @@ export interface ExamResult {
 
 export interface AppSettings {
   key: 'app'
+  /** 学習中の科目（試験）ID。lib/subjects.ts の SUBJECTS を参照 */
+  subjectId?: string
   dailyGoal: number
   interleave: boolean
   examDurationSec: number

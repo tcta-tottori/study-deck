@@ -21,6 +21,8 @@ export type IconName =
   | 'phone'
   | 'monitor'
   | 'menu'
+  | 'chevron'
+  | 'check'
 
 const PATHS: Record<IconName, ReactElement> = {
   home: (
@@ -131,6 +133,10 @@ const PATHS: Record<IconName, ReactElement> = {
       <line x1="4" y1="17" x2="20" y2="17" />
     </>
   ),
+  // 下向きシェブロン（プルダウン表示用）
+  chevron: <path d="M6 9l6 6 6-6" />,
+  // チェック
+  check: <path d="M5 12.5l4.5 4.5L19 7" />,
 }
 
 export function Icon({
