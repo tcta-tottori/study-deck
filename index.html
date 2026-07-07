@@ -96,13 +96,13 @@
         /* 緩急のある動き（ゆっくり起き上がり→パタンと倒れる） */
         animation: leafflip 3.2s cubic-bezier(0.7, 0, 0.25, 1) infinite;
       }
+      /* ページは両面とも全周に枠線・角丸。右で伏せても左へ着地しても端が切れない。 */
       .book3d .leaf b {
         position: absolute;
         inset: 0;
         box-sizing: border-box;
         border: 2px solid #2347c5;
-        border-left: none;
-        border-radius: 0 7px 7px 0;
+        border-radius: 7px;
         backface-visibility: hidden;
       }
       .book3d .leaf .front {
