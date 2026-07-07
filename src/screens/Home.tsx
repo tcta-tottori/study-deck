@@ -201,10 +201,10 @@ export default function Home({
           <div className="pc-figure">
             <span className="big">24</span>
             <span className="unit">問正解で合格（60点）</span>
+            <button className="pc-action filled" onClick={() => go('exam')}>
+              開始する
+            </button>
           </div>
-          <button className="pc-action filled" onClick={() => go('exam')}>
-            開始する
-          </button>
         </div>
         </Reveal>
         </div>

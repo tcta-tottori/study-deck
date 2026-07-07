@@ -156,9 +156,14 @@ export default function App() {
         {view === 'quiz' && <Quiz config={quizConfig} onExit={() => setView('home')} />}
         {view === 'exam' && <Exam onExit={() => setView('home')} />}
         {view === 'dashboard' && (
-          <Dashboard questions={safeQuestions} records={safeRecords} activity={safeActivity} />
+          <Dashboard
+            questions={safeQuestions}
+            records={safeRecords}
+            activity={safeActivity}
+            onHome={() => setView('home')}
+          />
         )}
-        {view === 'import' && <ImportScreen />}
+        {view === 'import' && <ImportScreen onHome={() => setView('home')} />}
         {view === 'settings' && <Settings onBack={() => setView('home')} />}
         </div>
 

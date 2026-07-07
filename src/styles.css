@@ -304,6 +304,32 @@ button {
   box-shadow: var(--shadow-sm);
 }
 
+/* ホームへ戻るボタン（成績・取込・設定のヘッダー）。
+   プライマリ色でほんのり色づけしたピルで、素っ気ない「←」より少しおしゃれに。 */
+.backhome {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px 0 11px;
+  border-radius: 999px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, transparent);
+  box-shadow: var(--shadow-sm);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  transition: transform 0.08s ease, background 0.15s ease;
+}
+.backhome:hover {
+  background: color-mix(in srgb, var(--primary) 16%, var(--surface));
+}
+.backhome:active {
+  transform: scale(0.96);
+}
+
 .screen {
   flex: 1;
   padding: 6px 20px 108px;
@@ -645,11 +671,13 @@ button {
   color: var(--text-dim);
   margin: 6px 0 12px;
 }
+/* 数値・単位テキストと「開始する」ボタンを1行に。ボタンは合格テキストの右側へ
+   左揃えで並べる（余白の auto は使わず、テキスト直後に置いて左寄せのまま右へ）。 */
 .prodcard .pc-figure {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-bottom: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
 }
 .prodcard .pc-figure .big {
   font-size: 30px;
@@ -659,6 +687,9 @@ button {
 .prodcard .pc-figure .unit {
   font-size: 13px;
   color: var(--text-dim);
+}
+.prodcard .pc-figure .pc-action {
+  margin-left: 4px;
 }
 .pc-action {
   display: inline-block;
@@ -866,13 +897,13 @@ button {
   white-space: nowrap;
   font-weight: 700;
 }
-/* 終了ボタン：濃い背景＋白文字のピルで明確化 */
+/* 終了ボタン：濃い背景＋白文字。「開始する」ボタンと同じく四角ベースで角だけ丸める */
 .quiz-exit {
   height: 32px;
   padding: 0 15px;
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  border-radius: 12px;
   background: var(--primary);
   color: var(--primary-ink);
   font-size: 13px;
@@ -887,6 +918,7 @@ button {
   height: 32px;
   max-width: 100%;
   padding: 0 11px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   font-size: 10.5px;
@@ -1150,12 +1182,6 @@ button {
 .ai-chip.brand-claude {
   background: #d97757;
   color: #fff3ea;
-  border-color: transparent;
-}
-/* Gemini：青→紫のグラデ背景・白文字/白アイコン */
-.ai-chip.brand-gemini {
-  background: linear-gradient(100deg, #4285f4 0%, #6b5ce7 55%, #9b4dea 100%);
-  color: #ffffff;
   border-color: transparent;
 }
 /* ChatGPT：白背景・黒文字/黒アイコン（テーマ問わず視認できるよう薄い枠を付ける） */
@@ -1585,6 +1611,30 @@ svg.line {
 /* 右カラム先頭の見出しは上端をヒーローと揃える */
 .app.wide .home-side > .sec-head {
   margin-top: 0;
+}
+
+/* 成績ダッシュボードの2カラム土台。既定（スマホ縦）は透過し従来どおり縦積み。 */
+.dash-grid,
+.dash-left,
+.dash-right {
+  display: contents;
+}
+/* PC成績：左1/3＝合格ライン到達予測、右2/3＝カテゴリ別・box分布・模試推移 */
+.app.wide .dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 22px;
+  align-items: start;
+}
+.app.wide .dash-left,
+.app.wide .dash-right {
+  display: block;
+  min-width: 0;
+}
+/* グリッドの各セル内でカードが最後に余白を残さないよう調整 */
+.app.wide .dash-left .card:last-child,
+.app.wide .dash-right .card:last-child {
+  margin-bottom: 0;
 }
 
 /* さらに広い実PC画面：本文幅を少し広げる */

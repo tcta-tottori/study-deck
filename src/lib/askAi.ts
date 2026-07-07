@@ -22,18 +22,16 @@ ${choices}
 ${answer}${ref}`
 }
 
-export type AiService = 'claude' | 'gemini' | 'chatgpt'
+export type AiService = 'claude' | 'chatgpt'
 
 export const AI_SERVICES: { key: AiService; label: string }[] = [
   { key: 'claude', label: 'Claude' },
-  { key: 'gemini', label: 'Gemini' },
   { key: 'chatgpt', label: 'ChatGPT' },
 ]
 
 /**
  * 各サービスを開くURL。
  * Claude / ChatGPT はクエリでチャット欄へ自動入力（プレフィル）できる。
- * Gemini はプレフィル未対応のため、アプリ/サイトを開いて貼り付けてもらう。
  * https URL なので、アプリがインストールされていれば OS のユニバーサルリンクで
  * 該当アプリが開き、無ければブラウザで開く。
  */
@@ -44,49 +42,6 @@ export function aiServiceUrl(service: AiService, prompt: string): string {
       return `https://claude.ai/new?q=${q}`
     case 'chatgpt':
       return `https://chatgpt.com/?q=${q}`
-    case 'gemini':
-      return 'https://gemini.google.com/app'
-  }
-}
-
-/**
- * クリックのジェスチャ内で「同期的に」コピーする（execCommand 方式）。
- * window.open で新規タブにフォーカスが移ると navigator.clipboard.writeText は
- * 「文書が非フォーカス」で失敗するため、開く前にこの同期コピーで確定させる用途。
- * （Gemini のようにURLプレフィル不可＝クリップボードが唯一の受け渡し手段のとき必須）
- *
- * 重要：textarea.focus() は使わない。フォーカス移動を挟むと直後の window.open が
- * モバイルで「ユーザー操作由来でない」と判定されブロックされるため、
- * どの要素にもフォーカスを当てず Selection/Range で範囲選択してコピーする。
- */
-export function copyTextSync(text: string): boolean {
-  try {
-    const span = document.createElement('span')
-    span.textContent = text
-    span.style.position = 'fixed'
-    span.style.left = '-9999px'
-    span.style.top = '0'
-    span.style.whiteSpace = 'pre'
-    document.body.appendChild(span)
-
-    const sel = window.getSelection()
-    // 既存の選択を退避し、コピー後に復元する
-    const saved: Range[] = []
-    if (sel) for (let i = 0; i < sel.rangeCount; i++) saved.push(sel.getRangeAt(i))
-
-    const range = document.createRange()
-    range.selectNodeContents(span)
-    sel?.removeAllRanges()
-    sel?.addRange(range)
-
-    const ok = document.execCommand('copy')
-
-    sel?.removeAllRanges()
-    saved.forEach((r) => sel?.addRange(r))
-    document.body.removeChild(span)
-    return ok
-  } catch {
-    return false
   }
 }
 

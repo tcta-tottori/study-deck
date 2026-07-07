@@ -3,8 +3,9 @@ import { CSV_TEMPLATE, importFromCsv, importFromJson, type ImportReport } from '
 import { useQuestions } from '../hooks/useAppData'
 import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
+import { BackHome } from '../components/BackHome'
 
-export default function ImportScreen() {
+export default function ImportScreen({ onHome }: { onHome: () => void }) {
   const toast = useToast()
   const questions = useQuestions()
   const [report, setReport] = useState<ImportReport | null>(null)
@@ -38,6 +39,7 @@ export default function ImportScreen() {
   return (
     <>
       <header className="appbar">
+        <BackHome onClick={onHome} />
         <h1>問題インポート</h1>
       </header>
       <div className="screen">
