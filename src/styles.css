@@ -579,6 +579,26 @@ button {
   font-size: 18px;
   font-weight: 800;
 }
+/* 「間違い復習」ボタン（復習が来ているの左側に並ぶ） */
+.hero-review {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  align-self: center;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border-radius: 14px;
+  padding: 9px 14px;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.2;
+  transition: transform 0.08s;
+}
+.hero-review:active {
+  transform: scale(0.97);
+}
 
 /* --- Section heads --- */
 .sec-head {
@@ -705,6 +725,78 @@ button {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
+}
+
+/* --- 試験形式カード（今日の学習と同様に1枠へ集約・赤テーマ） --- */
+.examcard {
+  background: linear-gradient(150deg, #e5484d, #b3282d);
+  border-radius: 26px;
+  padding: 20px;
+  color: #fff;
+  box-shadow: 0 16px 34px rgba(179, 40, 45, 0.28);
+  margin-bottom: 18px;
+}
+.examcard .ec-title {
+  font-size: 17px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.examcard .ec-ic {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  align-items: center;
+  justify-content: center;
+}
+.examcard .ec-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 8px 0 12px;
+}
+.examcard .ec-figure {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-bottom: 14px;
+}
+.examcard .ec-figure .big {
+  font-size: 32px;
+  font-weight: 800;
+  color: #fff;
+}
+.examcard .ec-figure .unit {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+}
+/* 開始ボタン：白・枠内横幅全体 */
+.examcard .ec-action {
+  display: block;
+  width: 100%;
+  background: #fff;
+  color: #b3282d;
+  border-radius: 16px;
+  padding: 15px;
+  font-weight: 800;
+  font-size: 16px;
+  text-align: center;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
+  transition: transform 0.08s;
+}
+.examcard .ec-action:active {
+  transform: scale(0.98);
+}
+.examcard .pc-sublink {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.examcard .pc-sublink > svg:last-child {
+  color: rgba(255, 255, 255, 0.75);
 }
 
 /* --- カテゴリ別リスト --- */
