@@ -163,7 +163,7 @@ export function ExamReview({
             })}
             {q.explanation && <p style={{ fontSize: 14 }}>{q.explanation}</p>}
             {/* AIで詳しく解説してもらう（クイズと共通） */}
-            <AiAsk question={q} compact />
+            <AiAsk question={q} selectedIndex={mine} compact />
           </div>
         )
       })}

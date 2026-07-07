@@ -2,14 +2,36 @@ import type { Question } from '../types'
 
 const LETTERS = ['ア', 'イ', 'ウ', 'エ']
 
-/** 問題・選択肢・正解から、AIに詳しい解説を求めるプロンプトを組み立てる */
-export function buildAiPrompt(q: Question): string {
+/**
+ * 問題・選択肢・正解から、AIに詳しい解説を求めるプロンプトを組み立てる。
+ * selectedIndex を渡すと「私の解答」を含め、誤答時はその選択肢の誤りを
+ * 重点的に解説するよう依頼する（未回答は -1）。
+ */
+export function buildAiPrompt(q: Question, selectedIndex?: number | null): string {
   const choices = q.choices.map((c, i) => `${LETTERS[i]}. ${c}`).join('\n')
   const answer = `${LETTERS[q.answerIndex]}. ${q.choices[q.answerIndex]}`
   const ref = q.explanation ? `\n\n【参考解説】\n${q.explanation}` : ''
+
+  // 自分が選択した解答（未回答や範囲外は「未回答」扱い）
+  const picked =
+    selectedIndex != null && selectedIndex >= 0 && selectedIndex < q.choices.length
+      ? selectedIndex
+      : null
+  const wrong = picked != null && picked !== q.answerIndex
+  const mineBlock =
+    picked != null
+      ? `\n\n【私の解答】\n${LETTERS[picked]}. ${q.choices[picked]}（${wrong ? '不正解' : '正解'}）`
+      : selectedIndex === -1
+        ? `\n\n【私の解答】\n未回答`
+        : ''
+  // 誤答時は、自分が選んだ選択肢がなぜ誤りかを重点的に説明してもらう
+  const wrongLine = wrong
+    ? `\n・特に、私が選んだ「${LETTERS[picked]}」がなぜ誤りなのかを重点的に説明`
+    : ''
+
   return `あなたは「生産管理プランニング3級（ビジネス・キャリア検定）」の講師です。次の問題について、初学者にもわかるように日本語で詳しく解説してください。
 ・正解が正しい理由を根拠とともに説明
-・ほかの選択肢がなぜ誤りなのかを一つずつ説明
+・ほかの選択肢がなぜ誤りなのかを一つずつ説明${wrongLine}
 ・関連する重要用語や覚えておくべきポイントを補足
 
 【問題】
@@ -19,7 +41,7 @@ ${q.stem}
 ${choices}
 
 【正解】
-${answer}${ref}`
+${answer}${mineBlock}${ref}`
 }
 
 export type AiService = 'claude' | 'chatgpt'

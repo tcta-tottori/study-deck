@@ -9,11 +9,20 @@ import { buildAiPrompt, aiServiceUrl, copyText, AI_SERVICES, type AiService } fr
  * クイズの解説と試験結果の見直しで共用する。
  * プロンプトは必ずクリップボードへコピーし、自動入力されない場合も貼り付けられるようにする。
  */
-export function AiAsk({ question, compact = false }: { question: Question; compact?: boolean }) {
+export function AiAsk({
+  question,
+  selectedIndex,
+  compact = false,
+}: {
+  question: Question
+  /** 自分が選択した解答（未回答は -1）。プロンプトに「私の解答」として含める。 */
+  selectedIndex?: number | null
+  compact?: boolean
+}) {
   const toast = useToast()
 
   function askAi(service: AiService) {
-    const prompt = buildAiPrompt(question)
+    const prompt = buildAiPrompt(question, selectedIndex)
     const url = aiServiceUrl(service, prompt)
     // Claude / ChatGPT はURLに載せて自動入力される。コピーは貼り付け用の保険。
     void copyText(prompt)
@@ -22,7 +31,7 @@ export function AiAsk({ question, compact = false }: { question: Question; compa
   }
 
   async function copyAiPrompt() {
-    const ok = await copyText(buildAiPrompt(question))
+    const ok = await copyText(buildAiPrompt(question, selectedIndex))
     toast(ok ? 'プロンプトをコピーしました。AIアプリに貼り付けてください。' : 'コピーに失敗しました')
   }
 

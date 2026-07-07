@@ -236,6 +236,7 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
           key={current.id}
           question={current}
           correct={correct}
+          chosen={chosen}
           box={box}
           onNext={next}
           toast={toast}
@@ -282,12 +283,14 @@ function GoalMeter({ count, goal }: { count: number; goal: number }) {
 function Explanation({
   question,
   correct,
+  chosen,
   box,
   onNext,
   toast,
 }: {
   question: Question
   correct: boolean
+  chosen: number | null
   box: number | null
   onNext: () => void
   toast: (m: React.ReactNode) => void
@@ -345,7 +348,7 @@ function Explanation({
         {question.explanation && <p className="answer-exp">{question.explanation}</p>}
 
         {/* AIアプリで詳しい解説を確認（API不要・アプリ/サイトを開いて質問） */}
-        <AiAsk question={question} />
+        <AiAsk question={question} selectedIndex={chosen} />
 
         {ai && (
           <p style={{ borderTop: '1px solid var(--border)', paddingTop: 8 }}>
