@@ -55,10 +55,12 @@ export default function App() {
   }, [])
   // 縦画面の下メニュー（ハンバーガー）の開閉
   const [menuOpen, setMenuOpen] = useState(false)
-  // ローディングのタイムアウト保険（詰まっても数秒でアプリ表示へ）
+  // ローディングのタイムアウト保険（万一データ取得が詰まっても最終的にアプリを表示）。
+  // 通常は「データが揃うまで」ローダーを出し続けるため、保険は長め（15秒）にする。
+  // ＝読み込みに2秒以上かかっても、完了までローダーを表示したままにする。
   const [bailout, setBailout] = useState(false)
   useEffect(() => {
-    const t = setTimeout(() => setBailout(true), 6000)
+    const t = setTimeout(() => setBailout(true), 15000)
     return () => clearTimeout(t)
   }, [])
   // 起動ローダー（index.html の #boot）は最低2秒は表示（一瞬で消えるチラつきを防ぐ）
@@ -66,6 +68,16 @@ export default function App() {
   useEffect(() => {
     const t = setTimeout(() => setMinShown(true), 2000)
     return () => clearTimeout(t)
+  }, [])
+  // PWA更新（autoUpdate）で「まもなくリロードされる」間は、ローダーを出したまま覆って
+  // 「アプリ→再ローディング」の二重表示（Loadingが2回）に見えないようにする。
+  const [swUpdating, setSwUpdating] = useState(
+    () => typeof window !== 'undefined' && !!(window as unknown as { __swUpdating?: boolean }).__swUpdating,
+  )
+  useEffect(() => {
+    const h = () => setSwUpdating(true)
+    window.addEventListener('sw-updating', h)
+    return () => window.removeEventListener('sw-updating', h)
   }, [])
 
   // テーマ適用（設定 + システム変更を追従）
@@ -122,17 +134,41 @@ export default function App() {
   }, [view])
 
   // 起動ローダー（index.html の #boot）は「初期データが揃い かつ 最低表示時間（2秒）を満たす」
-  // まで表示し、その後フェードして除去する。ローダーは #boot の1枚のみ（2回表示を防止）。
-  // 万一データ取得が詰まってもタイムアウト保険で数秒後に必ず除去する。
+  // まで表示し、その後フェードして隠す。要素は削除せず残す（PWA更新のリロードを覆うため
+  // あとで再表示できるようにする）。読み込みが2秒以上かかっても、完了（ready）まで出したまま。
   const ready = questions !== undefined && records !== undefined && activity !== undefined
   useEffect(() => {
+    // 更新リロードが近いときは隠さない（リロードをローダーで覆い、Loadingの二重表示を防ぐ）
+    if (swUpdating) return
     if (!((ready && minShown) || bailout)) return
     const boot = document.getElementById('boot')
     if (!boot) return
     boot.classList.add('boot-hide')
-    const t = setTimeout(() => boot.remove(), 420)
+    const t = setTimeout(() => {
+      boot.style.display = 'none'
+    }, 420)
     return () => clearTimeout(t)
-  }, [ready, minShown, bailout])
+  }, [ready, minShown, bailout, swUpdating])
+
+  // PWA更新が始まったら、隠していてもローダーを再表示してリロードを覆う。
+  // 万一更新が詰まっても永久ローダーにならないよう、保険で最終的に隠す。
+  useEffect(() => {
+    if (!swUpdating) return
+    const boot = document.getElementById('boot')
+    if (boot) {
+      boot.style.display = ''
+      requestAnimationFrame(() => boot.classList.remove('boot-hide'))
+    }
+    const t = setTimeout(() => {
+      const b = document.getElementById('boot')
+      if (!b) return
+      b.classList.add('boot-hide')
+      setTimeout(() => {
+        b.style.display = 'none'
+      }, 420)
+    }, 8000)
+    return () => clearTimeout(t)
+  }, [swUpdating])
 
   const safeQuestions = questions ?? []
   const safeRecords = records ?? new Map()
