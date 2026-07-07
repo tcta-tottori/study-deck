@@ -304,6 +304,32 @@ button {
   box-shadow: var(--shadow-sm);
 }
 
+/* ホームへ戻るボタン（成績・取込・設定のヘッダー）。
+   プライマリ色でほんのり色づけしたピルで、素っ気ない「←」より少しおしゃれに。 */
+.backhome {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px 0 11px;
+  border-radius: 999px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, transparent);
+  box-shadow: var(--shadow-sm);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  transition: transform 0.08s ease, background 0.15s ease;
+}
+.backhome:hover {
+  background: color-mix(in srgb, var(--primary) 16%, var(--surface));
+}
+.backhome:active {
+  transform: scale(0.96);
+}
+
 .screen {
   flex: 1;
   padding: 6px 20px 108px;
@@ -1585,6 +1611,30 @@ svg.line {
 /* 右カラム先頭の見出しは上端をヒーローと揃える */
 .app.wide .home-side > .sec-head {
   margin-top: 0;
+}
+
+/* 成績ダッシュボードの2カラム土台。既定（スマホ縦）は透過し従来どおり縦積み。 */
+.dash-grid,
+.dash-left,
+.dash-right {
+  display: contents;
+}
+/* PC成績：左1/3＝合格ライン到達予測、右2/3＝カテゴリ別・box分布・模試推移 */
+.app.wide .dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 22px;
+  align-items: start;
+}
+.app.wide .dash-left,
+.app.wide .dash-right {
+  display: block;
+  min-width: 0;
+}
+/* グリッドの各セル内でカードが最後に余白を残さないよう調整 */
+.app.wide .dash-left .card:last-child,
+.app.wide .dash-right .card:last-child {
+  margin-bottom: 0;
 }
 
 /* さらに広い実PC画面：本文幅を少し広げる */

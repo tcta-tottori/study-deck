@@ -4,6 +4,7 @@ import type { AppSettings } from '../types'
 import { SUBJECTS, getSubject } from '../lib/subjects'
 import { notificationPermission, requestNotificationPermission } from '../lib/reminder'
 import { useToast } from '../components/Toast'
+import { BackHome } from '../components/BackHome'
 
 // ビルド時刻（デプロイされたバージョンの目安）を日本時間で表示
 function formatBuildTime(): string {
@@ -60,9 +61,7 @@ export default function Settings({ onBack }: { onBack: () => void }) {
   return (
     <>
       <header className="appbar">
-        <button className="iconbtn" onClick={onBack} aria-label="戻る">
-          ←
-        </button>
+        <BackHome onClick={onBack} />
         <h1>設定</h1>
       </header>
       <div className="screen">
