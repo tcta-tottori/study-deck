@@ -309,8 +309,8 @@ function Explanation({
     const url = aiServiceUrl(service, prompt)
     if (service === 'gemini') {
       // Gemini はURLプレフィル未対応で、受け渡しはクリップボードのみ。
-      // 新規タブでフォーカスが外れると writeText は失敗するため、
-      // 開く前に同期コピーで確実に確定させてから、同一ジェスチャ内で開く。
+      // copyTextSync はフォーカスを奪わない（Selection方式）ので、先に確実へコピーしてから
+      // 同一ジェスチャ内で開いても window.open はブロックされない。
       const ok = copyTextSync(prompt)
       window.open(url, '_blank', 'noopener,noreferrer')
       toast(
