@@ -140,17 +140,15 @@ const PATHS: Record<IconName, ReactElement> = {
   chevron: <path d="M6 9l6 6 6-6" />,
   // チェック
   check: <path d="M5 12.5l4.5 4.5L19 7" />,
-  // 縦横切替（画面枠を表す角丸四角の中に、向きが逆の2本の矢印）
+  // 縦横切替（ひし形状に組んだ、向きが逆の2本の折れ矢印）
   swap: (
     <>
-      {/* 画面枠 */}
-      <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
-      {/* ↘ 下向きの矢印 */}
-      <path d="M9 8.5 L15 14.5" />
-      <path d="M15 11 L15 14.5 L11.5 14.5" />
-      {/* ↖ 上向きの矢印 */}
-      <path d="M15 15.5 L9 9.5" />
-      <path d="M9 13 L9 9.5 L12.5 9.5" />
+      {/* ↖ 上向きの矢印：左のかぎ形の先端→頂点→右下へ */}
+      <path d="M4.5 9 L11 3.5 L18.5 11.5" />
+      <path d="M4.5 9 L8.5 9 M4.5 9 L4.5 13" />
+      {/* ↘ 下向きの矢印：左上→谷→右のかぎ形の先端へ */}
+      <path d="M5.5 12.5 L13 20.5 L19.5 15" />
+      <path d="M19.5 15 L15.5 15 M19.5 15 L19.5 11" />
     </>
   ),
   // 太陽（ライトモード）
@@ -168,11 +166,15 @@ export function Icon({
   name,
   size = 24,
   strokeWidth = 1.8,
+  linecap = 'round',
+  linejoin = 'round',
   className,
 }: {
   name: IconName
   size?: number
   strokeWidth?: number
+  linecap?: 'round' | 'butt' | 'square'
+  linejoin?: 'round' | 'miter' | 'bevel'
   className?: string
 }) {
   return (
@@ -183,8 +185,8 @@ export function Icon({
       fill="none"
       stroke="currentColor"
       strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      strokeLinecap={linecap}
+      strokeLinejoin={linejoin}
       className={className}
       aria-hidden="true"
     >
