@@ -338,7 +338,20 @@ button {
 .screen {
   flex: 1;
   padding: 6px 20px 108px;
-  animation: fade 0.2s ease;
+  /* ページをめくるような3Dの遷移。左端を軸にパタンと開く。 */
+  transform-origin: left center;
+  backface-visibility: hidden;
+  animation: pageturn 0.42s cubic-bezier(0.2, 0.72, 0.3, 1);
+}
+@keyframes pageturn {
+  from {
+    opacity: 0;
+    transform: perspective(1500px) rotateY(-34deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1500px) rotateY(0deg);
+  }
 }
 @keyframes fade {
   from {
@@ -349,6 +362,11 @@ button {
     opacity: 1;
     transform: none;
   }
+}
+/* 横画面は回転フレーム内のため3Dめくりが不自然になる。シンプルなフェードにする。 */
+.rot-on .screen {
+  animation: fade 0.2s ease;
+  transform: none;
 }
 
 /* --- スクロール／初期表示のリビール（下から浮かび上がり＋ゲージ0→現在値） --- */
@@ -386,6 +404,10 @@ button {
   transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 @media (prefers-reduced-motion: reduce) {
+  /* 3Dのページめくりは控え、シンプルなフェードにする */
+  .screen {
+    animation: fade 0.2s ease;
+  }
   .reveal,
   .reveal-in {
     opacity: 1;

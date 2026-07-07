@@ -163,9 +163,10 @@ export default function App() {
     const boot = document.getElementById('boot')
     if (!boot) return
     boot.classList.add('boot-hide')
+    // ページめくりのフリップ（0.6s）が終わってから要素を消す
     const t = setTimeout(() => {
       boot.style.display = 'none'
-    }, 420)
+    }, 640)
     return () => clearTimeout(t)
   }, [ready, minShown, bailout, swUpdating])
 
@@ -184,7 +185,7 @@ export default function App() {
       b.classList.add('boot-hide')
       setTimeout(() => {
         b.style.display = 'none'
-      }, 420)
+      }, 640)
     }, 8000)
     return () => clearTimeout(t)
   }, [swUpdating])

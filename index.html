@@ -46,7 +46,9 @@
         gap: 20px;
         background: var(--boot-bg);
         font-family: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-        transition: opacity 0.4s ease;
+        /* ローディング終了時は「ページをめくる」ように左端を軸にパタンと開いて消える */
+        transform-origin: left center;
+        transition: opacity 0.45s ease, transform 0.6s cubic-bezier(0.5, 0, 0.7, 0.15);
       }
       /* システムがダーク かつ 明示的にライト指定されていないときはダーク配色 */
       @media (prefers-color-scheme: dark) {
@@ -75,6 +77,15 @@
       #boot.boot-hide {
         opacity: 0;
         pointer-events: none;
+        transform: perspective(1600px) rotateY(-96deg);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #boot {
+          transition: opacity 0.4s ease;
+        }
+        #boot.boot-hide {
+          transform: none;
+        }
       }
       #boot .bl-text {
         font-size: 14px;
