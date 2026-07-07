@@ -1706,3 +1706,64 @@ svg.line {
 .nav-sheet-item.active .ic {
   color: #fff;
 }
+
+/* --- 本番シミュレーション：モード選択（イントロ） --- */
+.exam-intro {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  align-self: center;
+  width: 100%;
+  max-width: 640px;
+  padding: 4px 4px calc(var(--safe-b) + 24px);
+}
+.exam-sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.exam-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 15px 16px;
+  color: var(--text);
+  transition: transform 0.08s;
+}
+.exam-card:active {
+  transform: scale(0.99);
+}
+.exam-card:disabled {
+  opacity: 0.5;
+}
+.exam-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.exam-card-title {
+  font-size: 16px;
+  font-weight: 800;
+}
+.exam-card-sub {
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.exam-card > svg {
+  color: var(--text-dim);
+  flex: 0 0 auto;
+}
+.exam-empty {
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 2px 6px;
+}
