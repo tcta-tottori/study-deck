@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { db, getSettings } from '../db/db'
-import { shuffle } from '../srs/srs'
 import { recordAnswer } from '../lib/study'
 import { categoryLabel, type ExamResult, type Question } from '../types'
 import { formatClock, formatDuration } from '../lib/dateutil'
+import { Icon } from '../components/Icon'
+import { listSessions, questionsForSession, pickBalanced, type ExamSession } from '../lib/exam'
 
 const LETTERS = ['ア', 'イ', 'ウ', 'エ']
 const EXAM_N = 40
-const PASS_N = 24
+const PASS_RATIO = 0.6 // 6割で合格
+
+type StartMode = { mode: 'random' } | { mode: 'session'; key: string }
 
 type Phase = 'intro' | 'running' | 'result'
 
@@ -19,7 +22,9 @@ export default function Exam({ onExit }: { onExit: () => void }) {
   const [durationSec, setDurationSec] = useState(110 * 60)
   const [remaining, setRemaining] = useState(110 * 60)
   const [result, setResult] = useState<ExamResult | null>(null)
-  const [available, setAvailable] = useState(0)
+  const [allQuestions, setAllQuestions] = useState<Question[]>([])
+  const [sessions, setSessions] = useState<ExamSession[]>([])
+  const available = allQuestions.length
   const startedAt = useRef(0)
   const submittedRef = useRef(false)
 
@@ -28,15 +33,18 @@ export default function Exam({ onExit }: { onExit: () => void }) {
       setDurationSec(s.examDurationSec)
       setRemaining(s.examDurationSec)
     })
-    db.questions.count().then(setAvailable)
+    db.questions.toArray().then((all) => {
+      setAllQuestions(all)
+      setSessions(listSessions(all))
+    })
   }, [])
 
-  async function start() {
-    const all = await db.questions.toArray()
-    const official = shuffle(all.filter((q) => q.origin === 'official'))
-    const original = shuffle(all.filter((q) => q.origin === 'original'))
-    // official優先で40問。不足分はoriginalで補完。
-    const picked = [...official, ...original].slice(0, Math.min(EXAM_N, all.length))
+  function start(opts: StartMode) {
+    const picked =
+      opts.mode === 'session'
+        ? questionsForSession(allQuestions, opts.key)
+        : pickBalanced(allQuestions, EXAM_N)
+    if (picked.length === 0) return
     setQuestions(picked)
     setAnswers(new Array(picked.length).fill(-1))
     setCur(0)
@@ -94,13 +102,14 @@ export default function Exam({ onExit }: { onExit: () => void }) {
       if (a >= 0) await recordAnswer(q, a)
     }
 
-    const score = Math.round((correct / EXAM_N) * 100 * 10) / 10
+    const total = questions.length
+    const score = Math.round((correct / total) * 100 * 10) / 10
     const res: ExamResult = {
       takenAt: Date.now(),
-      total: questions.length,
+      total,
       correct,
       score,
-      passed: correct >= PASS_N,
+      passed: correct / total >= PASS_RATIO,
       durationSec: durationSecTaken,
       byCategory,
       questionIds: questions.map((q) => q.id),
@@ -112,6 +121,8 @@ export default function Exam({ onExit }: { onExit: () => void }) {
   }
 
   if (phase === 'intro') {
+    const mins = Math.round(durationSec / 60)
+    const randomN = Math.min(EXAM_N, available)
     return (
       <div className="quiz">
         <div className="quiz-top">
@@ -123,19 +134,55 @@ export default function Exam({ onExit }: { onExit: () => void }) {
             <span />
           </div>
         </div>
-        <div className="quiz-spacer" />
-        <div className="card">
-          <h2>本番形式（4択40問）</h2>
-          <p>・{EXAM_N}問／制限時間 {Math.round(durationSec / 60)}分</p>
-          <p>・試験中は正誤を表示しません（提出後に採点）</p>
-          <p>・合格ライン：{PASS_N}問（60点）</p>
-          <p className="muted">
-            取り込み済み公式問題を優先出題します（現在の総問題数 {available}問）。
-          </p>
+        <div className="exam-intro">
+          <div className="card">
+            <h2>本番形式（4択・6割で合格）</h2>
+            <p className="muted" style={{ margin: 0 }}>
+              制限時間 {mins}分／試験中は正誤非表示（提出後に採点）。総取込 {available}問。
+            </p>
+          </div>
+
+          <div className="sec-head">
+            <h2>ランダム出題</h2>
+          </div>
+          <button
+            className="exam-card"
+            disabled={available === 0}
+            onClick={() => start({ mode: 'random' })}
+          >
+            <span className="exam-card-main">
+              <span className="exam-card-title">全分野バランス {randomN}問</span>
+              <span className="exam-card-sub">7分野の出題比率を調整してランダム出題</span>
+            </span>
+            <Icon name="arrow" size={18} />
+          </button>
+
+          <div className="sec-head">
+            <h2>過去問（年度・回別）</h2>
+          </div>
+          {sessions.length === 0 ? (
+            <p className="muted exam-empty">
+              公式の過去問が未取込です。「取込」タブから公式問題（ID: OFF-R06E / R06L …）を追加すると、
+              年度・前期／後期ごとにその回を丸ごと受験できます。
+            </p>
+          ) : (
+            <div className="exam-sessions">
+              {sessions.map((s) => (
+                <button
+                  key={s.key}
+                  className="exam-card"
+                  onClick={() => start({ mode: 'session', key: s.key })}
+                >
+                  <span className="exam-card-main">
+                    <span className="exam-card-title">{s.label}</span>
+                    <span className="exam-card-sub">{s.count}問</span>
+                  </span>
+                  <Icon name="arrow" size={18} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-        <button className="btn primary" disabled={available === 0} onClick={start}>
-          {available === 0 ? '問題がありません' : '開始する'}
-        </button>
       </div>
     )
   }
