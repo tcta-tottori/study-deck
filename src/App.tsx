@@ -115,6 +115,16 @@ export default function App() {
 
         {view !== 'quiz' && view !== 'exam' && (
           <nav className="nav">
+            <div className="nav-brand" aria-hidden="true">
+              <img
+                className="nav-brand-logo"
+                src={`${import.meta.env.BASE_URL}favicon-48.png`}
+                alt=""
+                width={30}
+                height={30}
+              />
+              <span>StudyDrill</span>
+            </div>
             <NavBtn label="ホーム" icon="home" active={view === 'home'} onClick={() => go('home')} />
             <NavBtn label="成績" icon="chart" active={view === 'dashboard'} onClick={() => go('dashboard')} />
             <NavBtn label="取込" icon="import" active={view === 'import'} onClick={() => go('import')} />
