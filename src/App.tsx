@@ -210,26 +210,16 @@ export default function App() {
 
         {/* 以下のコントロールは .app（横画面ではスクロールコンテナ）の外に置き、
             スクロールしても回転フレーム基準で固定されるようにする。 */}
-        {/* 縦横切替トグル（スマホ幅のときのみ／上部メニュー跡地）。アイコンで表示。 */}
+        {/* 縦横切替（スマホ幅のときのみ）。斜め矢印アイコンの単一トグルで縦⇄横を切替。 */}
         {showChrome && !pcWidth && (
-          <div className="otoggle" role="group" aria-label="画面の向き">
-            <button
-              className={!landscape ? 'on' : ''}
-              onClick={() => setLandscape(false)}
-              aria-label="縦画面"
-              aria-pressed={!landscape}
-            >
-              <Icon name="phone" size={20} />
-            </button>
-            <button
-              className={landscape ? 'on' : ''}
-              onClick={() => setLandscape(true)}
-              aria-label="横画面"
-              aria-pressed={landscape}
-            >
-              <Icon name="monitor" size={20} />
-            </button>
-          </div>
+          <button
+            className="otoggle-btn"
+            onClick={() => setLandscape(!landscape)}
+            aria-label={landscape ? '縦画面に切り替え' : '横画面に切り替え'}
+            aria-pressed={landscape}
+          >
+            <Icon name="swap" size={22} />
+          </button>
         )}
 
         {/* ナビ：縦画面/横画面/PC いずれも右下ハンバーガー＋下から立ち上がるボトムシート */}

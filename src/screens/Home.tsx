@@ -71,8 +71,8 @@ export default function Home({
           className="app-logo"
           src={`${import.meta.env.BASE_URL}favicon-48.png`}
           alt=""
-          width={28}
-          height={28}
+          width={34}
+          height={34}
         />
         <button
           className="subject-pick"
@@ -145,7 +145,12 @@ export default function Home({
         <Reveal>
         <section className="hero">
           <div className="hero-top">
-            <span>今日の学習</span>
+            <span className="hero-title">
+              <span className="hero-ic">
+                <Icon name="book" size={20} />
+              </span>
+              今日の学習
+            </span>
             <span className="hero-streak">
               <Icon name="flame" size={15} /> {streak}日連続
             </span>

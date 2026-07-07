@@ -23,6 +23,7 @@ export type IconName =
   | 'menu'
   | 'chevron'
   | 'check'
+  | 'swap'
 
 const PATHS: Record<IconName, ReactElement> = {
   home: (
@@ -137,6 +138,15 @@ const PATHS: Record<IconName, ReactElement> = {
   chevron: <path d="M6 9l6 6 6-6" />,
   // チェック
   check: <path d="M5 12.5l4.5 4.5L19 7" />,
+  // 縦横切替（斜めに向き合う2本の矢印）
+  swap: (
+    <>
+      <path d="M8 10 L8 6 L12 6" />
+      <path d="M8 6 L18 16" />
+      <path d="M16 14 L16 18 L12 18" />
+      <path d="M16 18 L6 8" />
+    </>
+  ),
 }
 
 export function Icon({

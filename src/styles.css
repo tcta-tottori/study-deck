@@ -183,9 +183,9 @@ button {
   z-index: 10;
 }
 .appbar .app-logo {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   flex-shrink: 0;
   object-fit: cover;
   box-shadow: var(--shadow-sm);
@@ -214,9 +214,9 @@ button {
   background: var(--surface-2);
 }
 .subject-name {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 800;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -304,16 +304,17 @@ button {
   box-shadow: var(--shadow-sm);
 }
 
-/* 戻るボタン（成績・取込・設定・受験履歴のヘッダー）。
-   添付アイコン（Uターンの戻る矢印）を白で描き、周りをプライマリ色のボタンにする。 */
+/* ホームへ戻るボタン（成績・取込・設定・受験履歴のヘッダー）。
+   ホームアイコンを白で描き、周りをプライマリ色のボタンにする。
+   ホームのロゴ＋科目名とサイズ感を揃える。 */
 .backhome {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   color: #fff;
   background: var(--primary);
   border: none;
@@ -488,6 +489,25 @@ button {
   justify-content: space-between;
   font-size: 13px;
   color: var(--on-hero);
+}
+/* 「今日の学習」タイトル（試験形式カードと同じアイコン付き見出しで統一感を出す） */
+.hero-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+}
+.hero-ic {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  align-items: center;
+  justify-content: center;
 }
 .hero-streak {
   display: inline-flex;
@@ -1932,30 +1952,28 @@ svg.line {
 }
 
 /* --- 縦横切替トグル（上部・アイコン式）。スマホ幅のときのみ表示 --- */
-.otoggle {
+/* 縦横切替：斜め矢印アイコンの単一トグルボタン（アプリの雰囲気に合わせた配色） */
+.otoggle-btn {
   position: fixed;
   top: calc(var(--safe-t) + 10px);
   right: 14px;
   z-index: 30;
-  display: inline-flex;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 12px;
-  background: var(--surface-2);
-  box-shadow: var(--shadow-sm);
-}
-.otoggle button {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 32px;
-  border-radius: 9px;
-  color: var(--text-dim);
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--primary);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.08s ease, filter 0.15s ease;
 }
-.otoggle button.on {
-  background: var(--primary);
-  color: #fff;
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 35%, transparent);
+.otoggle-btn:hover {
+  filter: brightness(1.03);
+}
+.otoggle-btn:active {
+  transform: scale(0.94);
 }
 
 /* --- 縦画面：右下ハンバーガー（メニュー起動）＋下から立ち上がるボトムシート --- */
