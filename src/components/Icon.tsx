@@ -18,6 +18,9 @@ export type IconName =
   | 'calendar'
   | 'sparkle'
   | 'copy'
+  | 'phone'
+  | 'monitor'
+  | 'menu'
 
 const PATHS: Record<IconName, ReactElement> = {
   home: (
@@ -103,6 +106,29 @@ const PATHS: Record<IconName, ReactElement> = {
     <>
       <rect x="9" y="9" width="11" height="11" rx="2" />
       <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+    </>
+  ),
+  // スマホ（縦画面）アイコン
+  phone: (
+    <>
+      <rect x="7" y="2.5" width="10" height="19" rx="2.5" />
+      <line x1="10.5" y1="18.5" x2="13.5" y2="18.5" />
+    </>
+  ),
+  // モニター/PC（横画面）アイコン
+  monitor: (
+    <>
+      <rect x="3" y="4" width="18" height="12" rx="2" />
+      <line x1="8.5" y1="20" x2="15.5" y2="20" />
+      <line x1="12" y1="16" x2="12" y2="20" />
+    </>
+  ),
+  // ハンバーガー（メニュー）
+  menu: (
+    <>
+      <line x1="4" y1="7" x2="20" y2="7" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <line x1="4" y1="17" x2="20" y2="17" />
     </>
   ),
 }

@@ -1443,113 +1443,216 @@ svg.line {
 }
 
 /* =========================================================================
-   PC（ワイド画面）最適化レイアウト。min-width: 860px でのみ適用し、
-   スマホ表示（既定のモバイル一列レイアウト）には一切影響を与えない。
-   下タブ → 左サイドバー化、本文は読みやすい幅に集約、カテゴリは2カラム。
+   ワイド（PC幅 or 横画面）レイアウト。App側で .app に .wide を付与して適用。
+   横画面（.rot-on 回転フレーム内）でもPC表示と同じサイドバー版になる。
+   縦画面スマホ（.wide なし）には一切影響しない。
    ========================================================================= */
-@media (min-width: 860px) {
-  /* 中央寄せの狭い列をやめ、全幅を使う。ナビ表示中のみ左サイドバー分を空ける。
-     クイズ/試験中（ナビ非表示）は従来どおり全幅で表示する。 */
-  .app {
-    max-width: none;
-    margin: 0;
-    min-height: 100vh;
-  }
-  .app:has(> nav.nav) {
-    padding-left: 248px;
-  }
+.app.wide {
+  max-width: none;
+  margin: 0;
+  min-height: 100%;
+}
+/* サイドバー分の余白（ナビ表示中のみ。クイズ/試験中は全幅） */
+.app.wide:has(> nav.nav) {
+  padding-left: 248px;
+}
+/* 本文（ヘッダー＋スクロール領域）は読みやすい幅に集約して中央寄せ */
+.app.wide .appbar,
+.app.wide .screen {
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+.app.wide .appbar {
+  padding-top: 22px;
+}
+.app.wide .screen {
+  padding: 10px 28px 48px;
+}
+/* 下部固定タブ → 左サイドバー（縦積み） */
+.app.wide .nav {
+  top: 0;
+  bottom: 0;
+  right: auto;
+  width: 248px;
+  max-width: none;
+  margin: 0;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 6px;
+  border-top: none;
+  border-right: 1px solid var(--border);
+  padding: 20px 16px calc(var(--safe-b) + 20px);
+}
+.app.wide .nav button {
+  flex: 0 0 auto;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 14px;
+  padding: 13px 16px;
+  font-size: 15px;
+  border-radius: 14px;
+}
+.app.wide .nav button .ic {
+  height: auto;
+}
+/* サイドバー見出し（ロゴ＋アプリ名） */
+.app.wide .nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 6px 12px 16px;
+  margin-bottom: 6px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+.app.wide .nav-brand-logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  box-shadow: var(--shadow-sm);
+}
+/* サイドバー化に伴い、ヘッダー左のロゴは重複するので隠す（アプリ名は残す） */
+.app.wide .appbar .app-logo {
+  display: none;
+}
+/* 横幅を活かすレイアウト：カテゴリ別は2カラム */
+.app.wide .catlist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.app.wide .hero-cta .go {
+  font-size: 17px;
+}
 
-  /* 本文（ヘッダー＋スクロール領域）は読みやすい幅に集約して中央寄せ */
-  .appbar,
-  .screen {
-    max-width: 960px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
+/* さらに広い実PC画面：本文幅を広げカテゴリ3カラム（横画面フレーム幅では発火しない） */
+@media (min-width: 1180px) {
+  .app.wide .appbar,
+  .app.wide .screen {
+    max-width: 1080px;
   }
-  .appbar {
-    padding-top: 22px;
-  }
-  .screen {
-    /* 下タブが無くなるぶん、下余白を通常のページ余白に戻す */
-    padding: 10px 28px 48px;
-  }
-
-  /* 下部固定タブ → 左サイドバー（縦積み） */
-  .nav {
-    top: 0;
-    bottom: 0;
-    right: auto;
-    width: 248px;
-    max-width: none;
-    margin: 0;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: stretch;
-    gap: 6px;
-    border-top: none;
-    border-right: 1px solid var(--border);
-    padding: 20px 16px calc(var(--safe-b) + 20px);
-  }
-  .nav button {
-    flex: 0 0 auto;
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 14px;
-    padding: 13px 16px;
-    font-size: 15px;
-    border-radius: 14px;
-  }
-  .nav button .ic {
-    height: auto;
-  }
-  /* サイドバー見出し（ロゴ＋アプリ名） */
-  .nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 6px 12px 16px;
-    margin-bottom: 6px;
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    color: var(--text);
-    border-bottom: 1px solid var(--border);
-  }
-  .nav-brand-logo {
-    width: 30px;
-    height: 30px;
-    border-radius: 9px;
-    box-shadow: var(--shadow-sm);
-  }
-  /* サイドバー化に伴い、ヘッダー左のロゴは重複するので隠す（アプリ名は残す） */
-  .appbar .app-logo {
-    display: none;
-  }
-
-  /* 画面回転トグルはスマホ専用機能のためPCでは非表示 */
-  .seg {
-    display: none;
-  }
-
-  /* 横幅を活かすレイアウト：カテゴリ別は2カラム、上部カードは横並び */
-  .catlist {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .hero-cta .go {
-    font-size: 17px;
+  .app.wide .catlist {
+    grid-template-columns: 1fr 1fr 1fr;
   }
 }
 
-/* さらに広い画面：本文の最大幅を少し広げ、カテゴリを3カラムに */
-@media (min-width: 1180px) {
-  .appbar,
-  .screen {
-    max-width: 1080px;
+/* --- 縦横切替トグル（上部・アイコン式）。スマホ幅のときのみ表示 --- */
+.otoggle {
+  position: fixed;
+  top: calc(var(--safe-t) + 10px);
+  right: 14px;
+  z-index: 30;
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  box-shadow: var(--shadow-sm);
+}
+.otoggle button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 32px;
+  border-radius: 9px;
+  color: var(--text-dim);
+}
+.otoggle button.on {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+/* --- 縦画面：右下ハンバーガー（メニュー起動）＋下から立ち上がるボトムシート --- */
+.nav-fab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(var(--safe-b) + 18px);
+  z-index: 40;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--primary);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 45%, transparent), var(--shadow);
+  transition: transform 0.16s ease;
+}
+.nav-fab:active {
+  transform: scale(0.93);
+}
+.nav-fab.open {
+  transform: rotate(90deg);
+}
+.nav-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 38;
+  background: rgba(10, 17, 34, 0.32);
+  animation: scrimIn 0.2s ease;
+}
+@keyframes scrimIn {
+  from {
+    opacity: 0;
   }
-  .catlist {
-    grid-template-columns: 1fr 1fr 1fr;
+  to {
+    opacity: 1;
   }
+}
+.nav-sheet {
+  position: fixed;
+  right: 18px;
+  bottom: calc(var(--safe-b) + 84px);
+  z-index: 39;
+  width: min(238px, 68vw);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  /* 下から立ち上がる演出 */
+  transform-origin: bottom right;
+  opacity: 0;
+  transform: translateY(18px) scale(0.96);
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.26s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+.nav-sheet.open {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+/* メニュー項目は左寄せ（アイコン→ラベル） */
+.nav-sheet-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: left;
+}
+.nav-sheet-item .ic {
+  display: inline-flex;
+  color: var(--text-dim);
+}
+.nav-sheet-item.active {
+  background: var(--primary);
+  color: #fff;
+}
+.nav-sheet-item.active .ic {
+  color: #fff;
 }

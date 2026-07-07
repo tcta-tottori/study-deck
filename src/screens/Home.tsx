@@ -16,8 +16,6 @@ export default function Home({
   questions,
   records,
   activity,
-  landscape,
-  setLandscape,
 }: {
   onStartQuiz: (cfg: QuizConfig) => void
   go: (v: View) => void
@@ -25,8 +23,6 @@ export default function Home({
   questions: Question[]
   records: Map<string, StudyRecord>
   activity: DayActivity[]
-  landscape: boolean
-  setLandscape: (v: boolean) => void
 }) {
   // now は初回マウント時に1回だけ確定（毎レンダーでの再計算/ちらつきを防ぐ）
   const nowRef = useRef(Date.now())
@@ -70,25 +66,9 @@ export default function Home({
           height={28}
         />
         <h1>StudyDrill</h1>
-        <span className="spacer" />
-        <button className="iconbtn" onClick={() => go('dashboard')} aria-label="成績">
-          <Icon name="chart" size={20} />
-        </button>
-        <button className="iconbtn" onClick={() => go('settings')} aria-label="設定">
-          <Icon name="gear" size={20} />
-        </button>
       </header>
 
       <div className="screen">
-        <div className="seg" role="tablist" aria-label="画面の向き">
-          <button className={!landscape ? 'on' : ''} onClick={() => setLandscape(false)}>
-            縦画面
-          </button>
-          <button className={landscape ? 'on' : ''} onClick={() => setLandscape(true)}>
-            横画面
-          </button>
-        </div>
-
         {/* 試験までのカウントダウン（タップで設定へ） */}
         <button className="countdown" onClick={() => go('settings')}>
           <span className="cd-ic">
