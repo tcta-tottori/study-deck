@@ -16,11 +16,13 @@ export default function Dashboard({
   records,
   activity,
   onHome,
+  onOpenExams,
 }: {
   questions: Question[]
   records: Map<string, StudyRecord>
   activity: DayActivity[]
   onHome: () => void
+  onOpenExams: () => void
 }) {
   const exams = useExamResults()
 
@@ -123,16 +125,28 @@ export default function Dashboard({
               </div>
             </Reveal>
 
-            {/* 模試スコア推移 */}
+            {/* 模試スコア推移（タップで受験履歴・復習へ） */}
             <Reveal>
-              <div className="card">
-                <h2>模試スコア推移</h2>
+              <button className="card card-btn" onClick={onOpenExams}>
+                <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h2 style={{ margin: 0 }}>模試スコア推移</h2>
+                  <span className="chip" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    履歴・復習 <Icon name="arrow" size={14} />
+                  </span>
+                </div>
                 {exams && exams.length > 0 ? (
                   <ScoreTrend scores={exams.map((e) => e.score)} />
                 ) : (
-                  <p className="muted">本番シミュレーションを受けると推移が表示されます。</p>
+                  <p className="muted" style={{ marginBottom: 0 }}>
+                    本番シミュレーションを受けると推移が表示されます。
+                  </p>
                 )}
-              </div>
+                {exams && exams.length > 0 && (
+                  <p className="muted" style={{ margin: '6px 0 0', fontSize: 12 }}>
+                    タップで1回ごとの詳細・分析・復習へ
+                  </p>
+                )}
+              </button>
             </Reveal>
           </div>
         </div>

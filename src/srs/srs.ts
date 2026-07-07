@@ -65,6 +65,8 @@ export interface QueueOptions {
   wrongOnly?: boolean
   /** 最大件数 */
   limit?: number
+  /** 出題を特定の問題IDに限定（試験結果からの復習など） */
+  questionIds?: string[]
 }
 
 /**
@@ -77,9 +79,13 @@ export function buildQueue(
   records: Map<string, StudyRecord>,
   opts: QueueOptions,
 ): Question[] {
-  const { now, categories, wrongOnly, limit } = opts
+  const { now, categories, wrongOnly, limit, questionIds } = opts
 
   let pool = questions
+  if (questionIds && questionIds.length > 0) {
+    const ids = new Set(questionIds)
+    pool = pool.filter((q) => ids.has(q.id))
+  }
   if (categories && categories.length > 0) {
     const set = new Set(categories)
     pool = pool.filter((q) => set.has(q.category))
