@@ -66,7 +66,7 @@ export default function Home({
 
   return (
     <>
-      <header className="appbar">
+      <header className="appbar appbar-home">
         <img
           className="app-logo"
           src={`${import.meta.env.BASE_URL}favicon-48.png`}

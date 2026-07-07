@@ -199,6 +199,11 @@ button {
 .appbar .spacer {
   flex: 1;
 }
+/* ホームのヘッダーは右上の固定コントロール（ライト/ダーク＋縦横切替）と
+   重ならないよう、右側にその分の余白を確保する。 */
+.appbar-home {
+  padding-right: 110px;
+}
 
 /* --- ホーム上部の科目名（タップで科目切替） --- */
 .subject-pick {
@@ -214,9 +219,9 @@ button {
   background: var(--surface-2);
 }
 .subject-name {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

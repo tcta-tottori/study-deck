@@ -140,13 +140,15 @@ const PATHS: Record<IconName, ReactElement> = {
   chevron: <path d="M6 9l6 6 6-6" />,
   // チェック
   check: <path d="M5 12.5l4.5 4.5L19 7" />,
-  // 縦横切替（斜めに向き合う2本の矢印）
+  // 縦横切替（対角に並ぶ、向きが逆の2本の矢印）
   swap: (
     <>
-      <path d="M8 10 L8 6 L12 6" />
-      <path d="M8 6 L18 16" />
-      <path d="M16 14 L16 18 L12 18" />
-      <path d="M16 18 L6 8" />
+      {/* ↘ 下向きの矢印 */}
+      <path d="M8 3 L18 13" />
+      <path d="M18 9 L18 13 L14 13" />
+      {/* ↖ 上向きの矢印 */}
+      <path d="M16 21 L6 11" />
+      <path d="M6 15 L6 11 L10 11" />
     </>
   ),
   // 太陽（ライトモード）
