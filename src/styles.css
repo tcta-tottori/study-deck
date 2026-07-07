@@ -1032,7 +1032,7 @@ button {
   flex-wrap: wrap;
   gap: 8px;
 }
-/* AIサービスボタン：ブランドアイコンが映えるよう地色は中立（白＋枠線） */
+/* AIサービスボタン：各AIのブランド色を背景に敷き、文字・アイコンは白/黒で載せる */
 .ai-chip {
   display: inline-flex;
   align-items: center;
@@ -1052,11 +1052,30 @@ button {
 .ai-chip .brand-icon {
   flex: 0 0 auto;
 }
-/* ChatGPTの黒マークはダーク背景で沈むため白丸を敷く */
-.ai-chip .brand-chatgpt {
-  background: #fff;
-  border-radius: 50%;
-  padding: 1px;
+/* Claude：オレンジ系背景に、少しオレンジがかった白文字・白アイコン */
+.ai-chip.brand-claude {
+  background: #d97757;
+  color: #fff3ea;
+  border-color: transparent;
+}
+/* Gemini：青ベースに赤・黄・緑が混ざるGoogleカラーのグラデ背景・白文字/白アイコン */
+.ai-chip.brand-gemini {
+  background: linear-gradient(
+    100deg,
+    #4285f4 0%,
+    #4285f4 28%,
+    #34a853 52%,
+    #fbbc05 74%,
+    #ea4335 100%
+  );
+  color: #ffffff;
+  border-color: transparent;
+}
+/* ChatGPT：白背景・黒文字/黒アイコン（テーマ問わず視認できるよう薄い枠を付ける） */
+.ai-chip.brand-chatgpt {
+  background: #ffffff;
+  color: #111111;
+  border-color: #d9dee7;
 }
 .ai-chip.ghost {
   background: var(--surface-2);

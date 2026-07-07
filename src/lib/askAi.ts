@@ -49,6 +49,30 @@ export function aiServiceUrl(service: AiService, prompt: string): string {
   }
 }
 
+/**
+ * クリックのジェスチャ内で「同期的に」コピーする（execCommand 方式）。
+ * window.open で新規タブにフォーカスが移ると navigator.clipboard.writeText は
+ * 「文書が非フォーカス」で失敗するため、開く前にこの同期コピーで確定させる用途。
+ * （Gemini のようにURLプレフィル不可＝クリップボードが唯一の受け渡し手段のとき必須）
+ */
+export function copyTextSync(text: string): boolean {
+  try {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.left = '-9999px'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.focus()
+    ta.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(ta)
+    return ok
+  } catch {
+    return false
+  }
+}
+
 /** クリップボードへコピー（Clipboard API 不可時は execCommand にフォールバック） */
 export async function copyText(text: string): Promise<boolean> {
   try {

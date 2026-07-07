@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react'
 
 // AIサービスのブランドマーク（添付アイコンを模したインラインSVG）。
-// currentColor ではなく各ブランド固有色で塗るため、チップ上でも識別しやすい。
+// 各AIのブランド色を「背景」に敷くチップ上で使うため、マーク自体は currentColor で
+// 塗り、親（チップ）の文字色（白 or 黒）を継承させて視認性を確保する。
 export type BrandName = 'claude' | 'gemini' | 'chatgpt'
 
 // Claude（Anthropic）：オレンジの放射バースト。中心から等間隔にスポークを描く。
@@ -26,28 +27,19 @@ function ClaudeMark(): ReactElement {
     )
   })
   return (
-    <g stroke="#D97757" strokeWidth={2.2} strokeLinecap="round">
+    <g stroke="currentColor" strokeWidth={2.2} strokeLinecap="round">
       {lines}
     </g>
   )
 }
 
-// Gemini：4方向にとがったスパーク（凹んだ四芒星）を青→紫→赤のグラデーションで。
+// Gemini：4方向にとがったスパーク（凹んだ四芒星）。背景がグラデのため単色（白）で塗る。
 function GeminiMark(): ReactElement {
   return (
-    <>
-      <defs>
-        <linearGradient id="brand-gemini" x1="2" y1="4" x2="22" y2="20" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#4285F4" />
-          <stop offset="0.5" stopColor="#9168C0" />
-          <stop offset="1" stopColor="#D96570" />
-        </linearGradient>
-      </defs>
-      <path
-        fill="url(#brand-gemini)"
-        d="M12 2c.3 4.6 1.9 8 8 10-6.1 2-7.7 5.4-8 10-.3-4.6-1.9-8-8-10 6.1-2 7.7-5.4 8-10z"
-      />
-    </>
+    <path
+      fill="currentColor"
+      d="M12 2c.3 4.6 1.9 8 8 10-6.1 2-7.7 5.4-8 10-.3-4.6-1.9-8-8-10 6.1-2 7.7-5.4 8-10z"
+    />
   )
 }
 
@@ -55,7 +47,7 @@ function GeminiMark(): ReactElement {
 function ChatgptMark(): ReactElement {
   return (
     <path
-      fill="#000"
+      fill="currentColor"
       d="M22.28 9.82a5.99 5.99 0 0 0-.52-4.91 6.05 6.05 0 0 0-6.51-2.9A6.07 6.07 0 0 0 4.98 4.18a5.99 5.99 0 0 0-3.99 2.9 6.05 6.05 0 0 0 .74 7.1 5.99 5.99 0 0 0 .51 4.91 6.05 6.05 0 0 0 6.52 2.9A5.98 5.98 0 0 0 13.26 22a6.06 6.06 0 0 0 5.77-4.21 5.99 5.99 0 0 0 3.99-2.9 6.06 6.06 0 0 0-.74-7.07zM13.26 20.6a4.5 4.5 0 0 1-2.88-1.04l.14-.08 4.78-2.76a.78.78 0 0 0 .39-.68v-6.74l2.02 1.17a.07.07 0 0 1 .04.05v5.58a4.5 4.5 0 0 1-4.5 4.5zM3.6 16.47a4.47 4.47 0 0 1-.54-3.01l.14.08 4.78 2.76a.78.78 0 0 0 .78 0l5.84-3.37v2.33a.08.08 0 0 1-.03.06L9.73 20.1a4.5 4.5 0 0 1-6.14-1.65zM2.34 7.9a4.49 4.49 0 0 1 2.35-1.97V11.6a.78.78 0 0 0 .39.68l5.84 3.37-2.02 1.17a.08.08 0 0 1-.07 0l-4.83-2.79A4.5 4.5 0 0 1 2.34 7.9zm16.6 3.86-5.84-3.37 2.02-1.17a.08.08 0 0 1 .07 0l4.83 2.79a4.5 4.5 0 0 1-.68 8.12v-5.68a.78.78 0 0 0-.4-.69zm2.01-3.02-.14-.08-4.78-2.76a.78.78 0 0 0-.78 0L9.4 9.28V6.95a.08.08 0 0 1 .03-.06l4.83-2.79a4.5 4.5 0 0 1 6.68 4.66zM8.3 12.86l-2.02-1.17a.07.07 0 0 1-.04-.05V6.06a4.5 4.5 0 0 1 7.38-3.46l-.14.08L8.7 5.44a.78.78 0 0 0-.39.68zm1.1-2.37 2.6-1.5 2.6 1.5v3l-2.6 1.5-2.6-1.5z"
     />
   )
@@ -67,7 +59,7 @@ const MARKS: Record<BrandName, () => ReactElement> = {
   chatgpt: ChatgptMark,
 }
 
-// ダークテーマではChatGPTの黒マークが埋もれるため、白背景の丸を敷いて視認性を確保。
+// マークは currentColor 塗り。色はチップ側（.ai-chip.brand-*）の文字色で決まる。
 export function BrandIcon({ name, size = 16 }: { name: BrandName; size?: number }) {
   const Mark = MARKS[name]
   return (
