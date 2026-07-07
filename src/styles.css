@@ -183,9 +183,11 @@ button {
   z-index: 10;
 }
 .appbar .app-logo {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  /* ホームに戻るボタン（.backhome）と同一サイズにして、画面切替時に
+     ヘッダーの位置がずれないようにする。 */
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   flex-shrink: 0;
   object-fit: cover;
   box-shadow: var(--shadow-sm);
