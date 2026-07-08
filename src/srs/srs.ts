@@ -102,21 +102,81 @@ export function buildQueue(
     return limit ? due.slice(0, limit) : due
   }
 
+  // 1) 復習期限が来たもの（間隔反復の核）。box 小さい＝直近で間違えた/苦手を優先。
   const dueNow = withRec
-    .filter((x) => x.rec && x.rec.dueAt <= now)
+    .filter((x) => x.rec && x.rec.lastAnswered > 0 && x.rec.dueAt <= now)
     .sort(cmpDue(now))
     .map((x) => x.q)
 
-  const unseen = shuffle(withRec.filter((x) => !x.rec).map((x) => x.q))
+  // 2) 未学習は、カテゴリを偏りなく（インターリービング）出しつつ、
+  //    正答率が低い/回答数の少ないカテゴリを優先して導入する。
+  const unseen = balanceByCategory(
+    withRec.filter((x) => !x.rec || x.rec.lastAnswered === 0).map((x) => x.q),
+    categoryPriority(withRec),
+  )
 
-  // 未来due（まだ時間ではない）は最後の保険として box 小さい順で足す
+  // 3) 未来due（まだ時間ではない）は最後の保険として box 小さい順で足す
   const future = withRec
-    .filter((x) => x.rec && x.rec.dueAt > now)
+    .filter((x) => x.rec && x.rec.lastAnswered > 0 && x.rec.dueAt > now)
     .sort(cmpDue(now))
     .map((x) => x.q)
 
   const queue = [...dueNow, ...unseen, ...future]
   return limit ? queue.slice(0, limit) : queue
+}
+
+/**
+ * カテゴリごとの優先度（値が小さいほど先に出す）。
+ * 正答率が低いほど・回答数が少ないほど優先（苦手＆手薄なカテゴリを前に）。
+ */
+function categoryPriority(withRec: { q: Question; rec?: StudyRecord }[]): Map<string, number> {
+  const agg = new Map<string, { correct: number; wrong: number; answered: number }>()
+  for (const { q, rec } of withRec) {
+    const a = agg.get(q.category) ?? { correct: 0, wrong: 0, answered: 0 }
+    if (rec && rec.lastAnswered > 0) {
+      a.correct += rec.correctCount
+      a.wrong += rec.wrongCount
+      a.answered += 1
+    }
+    agg.set(q.category, a)
+  }
+  const pr = new Map<string, number>()
+  for (const [cat, a] of agg) {
+    const denom = a.correct + a.wrong
+    const acc = denom > 0 ? a.correct / denom : 0
+    // 正答率を主・回答数を従（どちらも小さいほど優先＝先頭）
+    pr.set(cat, acc * 100000 + a.answered)
+  }
+  return pr
+}
+
+/**
+ * カテゴリ横断のインターリービング。優先度の高い（値が小さい）カテゴリから
+ * 1問ずつ回して取り出し、特定カテゴリに偏らないよう均等に混ぜる。
+ */
+function balanceByCategory(items: Question[], priority: Map<string, number>): Question[] {
+  const groups = new Map<string, Question[]>()
+  for (const q of shuffle(items)) {
+    const g = groups.get(q.category) ?? []
+    g.push(q)
+    groups.set(q.category, g)
+  }
+  const cats = [...groups.keys()].sort(
+    (a, b) => (priority.get(a) ?? 0) - (priority.get(b) ?? 0),
+  )
+  const out: Question[] = []
+  let added = true
+  while (added) {
+    added = false
+    for (const c of cats) {
+      const g = groups.get(c)
+      if (g && g.length) {
+        out.push(g.shift()!)
+        added = true
+      }
+    }
+  }
+  return out
 }
 
 function cmpDue(_now: number) {
