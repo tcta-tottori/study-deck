@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import type { View } from '../App'
 import type { QuizConfig } from './Quiz'
 import { computeStreak, dayKey, daysUntil, formatJpDate } from '../lib/dateutil'
-import { categoryStats, dueCount, overallAccuracy } from '../lib/stats'
+import { categoryStats, dueCount } from '../lib/stats'
 import { categoryLabel, type AppSettings, type Question, type StudyRecord } from '../types'
 import { updateSettings, type DayActivity } from '../db/db'
 import { categoryColor } from '../lib/categoryMap'
@@ -38,20 +38,29 @@ export default function Home({
     if (id !== settings.subjectId) void updateSettings({ subjectId: id })
   }
 
-  const { streak, todayCount, due, acc, cats } = useMemo(() => {
+  const { streak, todayCount, todayCorrect, due, unseen, cats } = useMemo(() => {
     const days = new Set(activity.map((a) => a.day))
     const today = activity.find((a) => a.day === todayKey)
+    // 未学習（まだ一度も解いていない）問題数
+    let unseenN = 0
+    for (const q of questions) {
+      const r = records.get(q.id)
+      if (!r || r.lastAnswered === 0) unseenN++
+    }
     return {
       streak: computeStreak(days, todayKey),
       todayCount: today?.count ?? 0,
+      todayCorrect: today?.correct ?? 0,
       due: dueCount(records, now),
-      acc: overallAccuracy(records),
+      unseen: unseenN,
       cats: categoryStats(questions, records),
     }
   }, [activity, records, questions, todayKey, now])
 
   const goal = settings.dailyGoal
   const goalPct = Math.min(100, Math.round((todayCount / goal) * 100))
+  // 今日の正答率（今日まだ解いていないときは非表示＝「—」）
+  const todayAcc = todayCount > 0 ? Math.round((todayCorrect / todayCount) * 100) : null
 
   const examDate = settings.examDate
   const daysLeft = daysUntil(examDate, now)
@@ -174,15 +183,15 @@ export default function Home({
             </button>
             <div>
               <div className="v">{due}</div>
-              <div className="k">復習が来ている</div>
+              <div className="k">復習待ち</div>
             </div>
             <div>
-              <div className="v">{Math.round(acc * 100)}%</div>
-              <div className="k">全体正答率</div>
+              <div className="v">{unseen}</div>
+              <div className="k">未学習</div>
             </div>
             <div>
-              <div className="v">{questions?.length ?? '—'}</div>
-              <div className="k">問題数</div>
+              <div className="v">{todayAcc === null ? '—' : `${todayAcc}%`}</div>
+              <div className="k">今日の正答率</div>
             </div>
           </div>
         </section>

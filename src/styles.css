@@ -628,7 +628,7 @@ button {
   font-size: 18px;
   font-weight: 800;
 }
-/* 「間違い復習」ボタン（復習が来ているの左側に並ぶ） */
+/* 「間違い復習」ボタン（復習待ち・未学習・今日の正答率の左に並ぶ） */
 .hero-review {
   display: inline-flex;
   flex-direction: column;
