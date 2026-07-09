@@ -347,10 +347,10 @@ export default function Exam({
             </span>
             {over && <span className="exam-over">計画時間を超過中</span>}
           </div>
-          <div className="stem">{q.stem}</div>
+          <div key={q.id} className="stem">{q.stem}</div>
         </div>
         <div className="quiz-spacer" />
-        <div className="choices">
+        <div key={q.id} className="choices">
           {q.choices.map((c, i) => (
             <button
               key={i}
