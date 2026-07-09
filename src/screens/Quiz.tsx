@@ -209,25 +209,28 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
         <GoalMeter count={baseProgress.count + answeredCount} goal={baseProgress.goal} />
       </div>
 
-      {/* 中央：問題文＋選択肢（長ければスクロール）。採点後は少し暗くして解説へ集中させる。
-          key に問題IDを与え、設問が変わるたびに下からのフェードイン（riseIn）を再生する。 */}
-      <div key={current.id} className={`quiz-scroll${answered ? ' answered' : ''}`}>
-        <div className="stem">{current.stem}</div>
-        <div className="choices">
-          {current.choices.map((c, i) => {
-            let cls = 'choice'
-            if (answered) {
-              if (i === current.answerIndex) cls += ' correct'
-              else if (i === chosen) cls += ' wrong'
-              else cls += ' dimmed'
-            }
-            return (
-              <button key={i} className={cls} disabled={answered} onClick={() => choose(i)}>
-                <span className="mark">{CHOICE_LETTERS[i]}</span>
-                <span>{c}</span>
-              </button>
-            )
-          })}
+      {/* 中央：問題文＋選択肢（長ければスクロール）。採点後は少し暗くして解説へ集中させる。 */}
+      <div className={`quiz-scroll${answered ? ' answered' : ''}`}>
+        {/* 内側だけを問題IDで差し替える（スクロールコンテナは再マウントしない）。
+            設問が変わるたびに下からのフェードイン（riseIn）を再生する。 */}
+        <div key={current.id} className="quiz-qbody">
+          <div className="stem">{current.stem}</div>
+          <div className="choices">
+            {current.choices.map((c, i) => {
+              let cls = 'choice'
+              if (answered) {
+                if (i === current.answerIndex) cls += ' correct'
+                else if (i === chosen) cls += ' wrong'
+                else cls += ' dimmed'
+              }
+              return (
+                <button key={i} className={cls} disabled={answered} onClick={() => choose(i)}>
+                  <span className="mark">{CHOICE_LETTERS[i]}</span>
+                  <span>{c}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 

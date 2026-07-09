@@ -450,7 +450,8 @@ button {
 }
 .quiz > .nextbar {
   flex: 0 0 auto;
-  padding-bottom: calc(var(--safe-b) + 6px);
+  /* 画面最下部のホームバー等と重ならないよう、少し上に余白を確保 */
+  padding-bottom: calc(var(--safe-b) + 26px);
 }
 
 /* --- スクロール／初期表示のリビール（下から浮かび上がり＋ゲージ0→現在値） --- */
