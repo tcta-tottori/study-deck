@@ -1914,9 +1914,19 @@ svg.daily-trend {
   font-size: 10px;
   fill: var(--text-dim);
 }
+.daily-trend .dt-goal {
+  font-size: 10px;
+  font-weight: 800;
+  fill: var(--correct);
+}
 .daily-trend .dt-axis {
   stroke: var(--border);
   stroke-width: 1.2;
+}
+.daily-trend .dt-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+  opacity: 0.55;
 }
 .daily-trend .dt-bar {
   fill: var(--primary);
@@ -1927,9 +1937,9 @@ svg.daily-trend {
 }
 .daily-trend .dt-guide {
   stroke: var(--correct);
-  stroke-width: 1;
-  stroke-dasharray: 4 4;
-  opacity: 0.55;
+  stroke-width: 1.4;
+  stroke-dasharray: 5 4;
+  opacity: 0.9;
 }
 .daily-trend .dt-line {
   fill: none;
