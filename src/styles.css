@@ -1361,6 +1361,12 @@ button {
   box-shadow: none;
   border: 1.5px solid var(--border);
 }
+/* 赤ボタン（試験の中断・終了・続きから再開）。白文字・赤背景。 */
+.btn.danger {
+  background: #e5484d;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(179, 40, 45, 0.28);
+}
 .btn:active {
   transform: scale(0.98);
 }
@@ -1546,8 +1552,8 @@ textarea {
 
 /* 中断中の「続きから再開」カード */
 .resume-card {
-  border: 1.5px solid color-mix(in srgb, var(--primary) 40%, transparent);
-  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  border: 1.5px solid color-mix(in srgb, #e5484d 45%, transparent);
+  background: color-mix(in srgb, #e5484d 8%, var(--surface));
 }
 .resume-head {
   display: inline-flex;
@@ -1555,7 +1561,7 @@ textarea {
   gap: 6px;
   font-size: 12px;
   font-weight: 800;
-  color: var(--primary);
+  color: #e5484d;
   margin-bottom: 8px;
 }
 .resume-title {
@@ -2104,6 +2110,11 @@ svg.line {
   width: 100%;
   max-width: 640px;
   padding: 4px 4px calc(var(--safe-b) + 24px);
+  /* 右側のスクロールバーを非表示（スクロール操作は可能） */
+  scrollbar-width: none;
+}
+.exam-intro::-webkit-scrollbar {
+  display: none;
 }
 .exam-sessions {
   display: flex;
