@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import { useExamResults } from '../hooks/useAppData'
 import { boxDistribution, categoryStats, overallAccuracy, passOutlook } from '../lib/stats'
 import { categoryLabel, type Question, type StudyRecord } from '../types'
@@ -230,6 +230,9 @@ function DailyTrendCard({ allDays }: { allDays: Day[] }) {
   const [rangeDays, setRangeDays] = useState(Math.max(minRange, Math.min(7, maxRange)))
   const shown = Math.min(rangeDays, maxRange)
   const days = allDays.slice(-shown)
+  // スライダーの塗り（webkit用）を値から算出
+  const pct = maxRange > minRange ? ((shown - minRange) / (maxRange - minRange)) * 100 : 100
+  const rangeStyle = { '--pct': `${pct}%` } as CSSProperties
 
   return (
     <>
@@ -242,6 +245,7 @@ function DailyTrendCard({ allDays }: { allDays: Day[] }) {
               min={minRange}
               max={maxRange}
               value={rangeDays}
+              style={rangeStyle}
               onChange={(e) => setRangeDays(Number(e.target.value))}
               aria-label="表示する日数"
             />
@@ -296,8 +300,10 @@ function DailyTrend({ days }: { days: Day[] }) {
     const [, m, d] = key.split('-').map(Number)
     return `${m}/${d}`
   }
-  // x軸ラベルは最大5つを等間隔に（重複は除去）
-  const labelCount = Math.min(5, n)
+  // x軸ラベル：重ならない範囲でできるだけ多く表示（日数が少なければ全日、
+  // 多ければ等間隔に間引く）。ラベル1つ分の目安幅からプロット幅で最大数を算出。
+  const maxLabels = Math.max(2, Math.floor((W - padL - padR) / 40))
+  const labelCount = Math.min(maxLabels, n)
   const labelIdx = [
     ...new Set(
       Array.from({ length: labelCount }, (_, k) =>
