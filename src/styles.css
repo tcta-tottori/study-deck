@@ -1931,27 +1931,57 @@ svg.daily-trend {
 .daily-trend .dt-bar {
   fill: var(--primary);
 }
-.daily-trend .dt-bar.bg {
-  fill: var(--primary);
-  opacity: 0.26;
-}
 .daily-trend .dt-guide {
   stroke: var(--correct);
   stroke-width: 1.4;
   stroke-dasharray: 5 4;
   opacity: 0.9;
 }
+/* 正答率の折れ線は棒（青）と区別するためアクセント色。棒に重なるドットは面色リングで抜く。 */
 .daily-trend .dt-line {
   fill: none;
-  stroke: var(--primary);
-  stroke-width: 2.4;
+  stroke: var(--accent);
+  stroke-width: 2.6;
   stroke-linecap: round;
 }
 .daily-trend .dt-dot.ok {
   fill: var(--correct);
+  stroke: var(--surface);
+  stroke-width: 1.4;
 }
 .daily-trend .dt-dot.ng {
   fill: var(--wrong);
+  stroke: var(--surface);
+  stroke-width: 1.4;
+}
+
+/* 学習推移カードのヘッダー（タイトル＋日数スライダー） */
+.dt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.dt-head h2 {
+  margin: 0;
+}
+.dt-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+.dt-range input[type='range'] {
+  width: 96px;
+  accent-color: var(--primary);
+}
+.dt-range-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+  min-width: 34px;
+  text-align: right;
 }
 
 /* --- Loading --- */

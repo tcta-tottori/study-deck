@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useExamResults } from '../hooks/useAppData'
 import { boxDistribution, categoryStats, overallAccuracy, passOutlook } from '../lib/stats'
 import { categoryLabel, type Question, type StudyRecord } from '../types'
@@ -41,19 +41,22 @@ export default function Dashboard({
     [activity, now],
   )
 
-  // 直近14日の日次推移（回答数・正答率）。記録の無い日は0で埋める。
+  // 日次推移（回答数・正答率）。最初の学習日〜今日を左詰めで用意（最大90日）。
+  // 表示期間はカード側のスライダーで切り替える。
   const daily = useMemo(() => {
     const byDay = new Map(activity.map((a) => [a.day, a]))
     const todayK = dayKey(now)
-    const days: { key: string; count: number; correct: number }[] = []
-    for (let i = 13; i >= 0; i--) {
+    const raw: { key: string; count: number; correct: number }[] = []
+    for (let i = 89; i >= 0; i--) {
       const k = addDaysKey(todayK, -i)
       const a = byDay.get(k)
-      days.push({ key: k, count: a?.count ?? 0, correct: a?.correct ?? 0 })
+      raw.push({ key: k, count: a?.count ?? 0, correct: a?.correct ?? 0 })
     }
-    return days
+    // 最初に学習した日より前の空白日は捨てる（左詰め）
+    const firstIdx = raw.findIndex((d) => d.count > 0)
+    return firstIdx < 0 ? [] : raw.slice(firstIdx)
   }, [activity, now])
-  const dailyHasData = daily.some((d) => d.count > 0)
+  const dailyHasData = daily.length > 0
 
   const outlook = passOutlook(data.acc)
   const totalAnswered = data.cats.reduce((s, c) => s + c.answered, 0)
@@ -98,16 +101,18 @@ export default function Dashboard({
           </div>
 
           <div className="dash-right">
-            {/* 日別の学習推移（回答数＋正答率） */}
+            {/* 日別の学習推移（回答数＋正答率）。表示期間はスライダーで調整 */}
             <Reveal>
               <div className="card">
-                <h2>学習の推移（直近14日）</h2>
                 {dailyHasData ? (
-                  <DailyTrend days={daily} />
+                  <DailyTrendCard allDays={daily} />
                 ) : (
-                  <p className="muted" style={{ marginBottom: 0 }}>
-                    学習を続けると、日ごとの回答数と正答率の推移が表示されます。
-                  </p>
+                  <>
+                    <h2>学習の推移</h2>
+                    <p className="muted" style={{ marginBottom: 0 }}>
+                      学習を続けると、日ごとの回答数と正答率の推移が表示されます。
+                    </p>
+                  </>
                 )}
               </div>
             </Reveal>
@@ -213,12 +218,48 @@ function BoxDist({ dist }: { dist: number[] }) {
   )
 }
 
+type Day = { key: string; count: number; correct: number }
+
 /**
- * 日別の学習推移。1つの図に「回答数（棒＝量の文脈）」と
- * 「正答率（折れ線＝主役）」をまとめ、日付の横軸を明示する。
- * 左軸＝回答数（問）、右軸＝正答率（%）。
+ * 学習推移カード。右上のスライダーで表示日数（3日〜全範囲、標準7日）を切り替え、
+ * 直近 rangeDays 日ぶんを左詰めで表示する。
  */
-function DailyTrend({ days }: { days: { key: string; count: number; correct: number }[] }) {
+function DailyTrendCard({ allDays }: { allDays: Day[] }) {
+  const maxRange = allDays.length
+  const minRange = Math.min(3, maxRange)
+  const [rangeDays, setRangeDays] = useState(Math.max(minRange, Math.min(7, maxRange)))
+  const shown = Math.min(rangeDays, maxRange)
+  const days = allDays.slice(-shown)
+
+  return (
+    <>
+      <div className="dt-head">
+        <h2>学習の推移</h2>
+        {maxRange > minRange && (
+          <label className="dt-range" title="表示する日数">
+            <input
+              type="range"
+              min={minRange}
+              max={maxRange}
+              value={rangeDays}
+              onChange={(e) => setRangeDays(Number(e.target.value))}
+              aria-label="表示する日数"
+            />
+            <span className="dt-range-val">{shown}日</span>
+          </label>
+        )}
+      </div>
+      <DailyTrend days={days} />
+    </>
+  )
+}
+
+/**
+ * 日別の学習推移。1つの図に「回答数（棒）」と「正答率（折れ線）」をまとめ、
+ * 日付の横軸を明示する。左軸＝回答数（問）、右軸＝正答率（%）。
+ * 回答数20問＝正答率60% を同じ高さの目標線に揃える。
+ */
+function DailyTrend({ days }: { days: Day[] }) {
   const n = days.length
   const W = 340
   const H = 182
@@ -229,7 +270,7 @@ function DailyTrend({ days }: { days: { key: string; count: number; correct: num
   const plotH = axisY - padTop
   const slot = (W - padL - padR) / n
   const cx = (i: number) => padL + slot * i + slot / 2
-  const bw = Math.min(14, slot - 5)
+  const bw = Math.max(2, Math.min(18, slot - 4)) // 日数が多いほど細く
 
   // 回答数20問が正答率60%と同じ高さに来るよう軸を揃える（20/countMax = 60/100）
   const countMax = 100 / 3
@@ -255,7 +296,15 @@ function DailyTrend({ days }: { days: { key: string; count: number; correct: num
     const [, m, d] = key.split('-').map(Number)
     return `${m}/${d}`
   }
-  const labelIdx = [0, Math.round((n - 1) / 3), Math.round((2 * (n - 1)) / 3), n - 1]
+  // x軸ラベルは最大5つを等間隔に（重複は除去）
+  const labelCount = Math.min(5, n)
+  const labelIdx = [
+    ...new Set(
+      Array.from({ length: labelCount }, (_, k) =>
+        Math.round((k * (n - 1)) / Math.max(1, labelCount - 1)),
+      ),
+    ),
+  ]
 
   return (
     <svg className="daily-trend" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="日別の回答数と正答率の推移">
@@ -295,8 +344,8 @@ function DailyTrend({ days }: { days: { key: string; count: number; correct: num
             y={barTopY(d.count)}
             width={bw}
             height={axisY - barTopY(d.count)}
-            rx={3}
-            className="dt-bar bg"
+            rx={2.5}
+            className="dt-bar"
           />
         ) : null,
       )}
