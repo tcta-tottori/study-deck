@@ -214,27 +214,25 @@ function BoxDist({ dist }: { dist: number[] }) {
 }
 
 /**
- * 日別の学習推移。dataviz指針に従い二軸を避け、
- * 「回答数（棒）」と「正答率（折れ線）」を日付x軸を共有した2パネルで表示する。
+ * 日別の学習推移。1つの図に「回答数（棒＝量の文脈）」と
+ * 「正答率（折れ線＝主役）」をまとめ、日付の横軸を明示する。
+ * 左軸＝回答数（問）、右軸＝正答率（%）。
  */
 function DailyTrend({ days }: { days: { key: string; count: number; correct: number }[] }) {
   const n = days.length
   const W = 340
-  const padX = 10
-  const slot = (W - padX * 2) / n
-  const cx = (i: number) => padX + slot * i + slot / 2
-  const bw = Math.min(16, slot - 6)
+  const H = 182
+  const padL = 26
+  const padR = 30
+  const padTop = 34
+  const axisY = 150 // 横軸（ベースライン）
+  const slot = (W - padL - padR) / n
+  const cx = (i: number) => padL + slot * i + slot / 2
+  const bw = Math.min(14, slot - 5)
 
-  // 回答数パネル
   const maxCount = Math.max(1, ...days.map((d) => d.count))
-  const barsTop = 24
-  const barsBase = 118
-  const barH = (c: number) => (c / maxCount) * (barsBase - barsTop)
-
-  // 正答率パネル（0〜100%）
-  const accTop = 158
-  const accBase = 232
-  const accY = (pct: number) => accBase - (pct / 100) * (accBase - accTop)
+  const barH = (c: number) => (c / maxCount) * (axisY - padTop)
+  const accY = (pct: number) => axisY - (pct / 100) * (axisY - padTop)
 
   const pts = days.map((d, i) => ({
     i,
@@ -256,30 +254,43 @@ function DailyTrend({ days }: { days: { key: string; count: number; correct: num
   const labelIdx = [0, Math.round((n - 1) / 3), Math.round((2 * (n - 1)) / 3), n - 1]
 
   return (
-    <svg className="daily-trend" viewBox={`0 0 ${W} 250`} role="img" aria-label="日別の回答数と正答率の推移">
-      {/* --- 回答数（棒） --- */}
-      <text x={padX} y={14} className="dt-title">回答数</text>
-      <text x={W - padX} y={14} className="dt-hint" textAnchor="end">最大 {maxCount}問</text>
-      <line x1={padX} y1={barsBase} x2={W - padX} y2={barsBase} className="dt-axis" />
+    <svg className="daily-trend" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="日別の回答数と正答率の推移">
+      {/* 凡例 */}
+      <rect x={padL} y={8} width={10} height={10} rx={2} className="dt-bar" />
+      <text x={padL + 15} y={17} className="dt-leg">回答数</text>
+      <line x1={padL + 70} y1={13} x2={padL + 92} y2={13} className="dt-line" />
+      <circle cx={padL + 81} cy={13} r={3.5} className="dt-dot ok" />
+      <text x={padL + 97} y={17} className="dt-leg">正答率</text>
+
+      {/* 左軸＝回答数（問） */}
+      <text x={6} y={padTop - 8} className="dt-tick">問</text>
+      <text x={padL - 4} y={padTop + 3} className="dt-tick" textAnchor="end">{maxCount}</text>
+      <text x={padL - 4} y={axisY} className="dt-tick" textAnchor="end">0</text>
+
+      {/* 右軸＝正答率（%）と合格ライン60% */}
+      <text x={W - padR + 4} y={padTop + 3} className="dt-tick">100%</text>
+      <line x1={padL} y1={accY(60)} x2={W - padR} y2={accY(60)} className="dt-guide" />
+      <text x={W - padR + 4} y={accY(60) + 3} className="dt-tick">60</text>
+
+      {/* 回答数（棒・背景の量） */}
       {days.map((d, i) =>
         d.count > 0 ? (
           <rect
             key={d.key}
             x={cx(i) - bw / 2}
-            y={barsBase - barH(d.count)}
+            y={axisY - barH(d.count)}
             width={bw}
             height={barH(d.count)}
             rx={3}
-            className="dt-bar"
+            className="dt-bar bg"
           />
         ) : null,
       )}
 
-      {/* --- 正答率（折れ線） --- */}
-      <text x={padX} y={148} className="dt-title">正答率</text>
-      {/* 合格ライン 60% */}
-      <line x1={padX} y1={accY(60)} x2={W - padX} y2={accY(60)} className="dt-guide" />
-      <text x={W - padX} y={accY(60) - 3} className="dt-guide-label" textAnchor="end">60%</text>
+      {/* 横軸（ベースライン） */}
+      <line x1={padL} y1={axisY} x2={W - padR} y2={axisY} className="dt-axis" />
+
+      {/* 正答率（折れ線・主役） */}
       {segs.map((d, i) => (
         <path key={i} d={d} className="dt-line" />
       ))}
@@ -295,9 +306,9 @@ function DailyTrend({ days }: { days: { key: string; count: number; correct: num
         ) : null,
       )}
 
-      {/* --- 日付ラベル --- */}
+      {/* 日付ラベル（横軸） */}
       {labelIdx.map((i) => (
-        <text key={i} x={cx(i)} y={247} className="dt-xlabel" textAnchor="middle">
+        <text key={i} x={cx(i)} y={axisY + 16} className="dt-xlabel" textAnchor="middle">
           {label(days[i].key)}
         </text>
       ))}

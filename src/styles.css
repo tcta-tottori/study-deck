@@ -1904,34 +1904,37 @@ svg.daily-trend {
   display: block;
   margin-top: 4px;
 }
-.daily-trend .dt-title {
+.daily-trend .dt-leg {
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   fill: var(--text);
 }
-.daily-trend .dt-hint,
-.daily-trend .dt-xlabel,
-.daily-trend .dt-guide-label {
+.daily-trend .dt-tick,
+.daily-trend .dt-xlabel {
   font-size: 10px;
   fill: var(--text-dim);
 }
 .daily-trend .dt-axis {
   stroke: var(--border);
-  stroke-width: 1;
+  stroke-width: 1.2;
 }
 .daily-trend .dt-bar {
   fill: var(--primary);
+}
+.daily-trend .dt-bar.bg {
+  fill: var(--primary);
+  opacity: 0.26;
 }
 .daily-trend .dt-guide {
   stroke: var(--correct);
   stroke-width: 1;
   stroke-dasharray: 4 4;
-  opacity: 0.6;
+  opacity: 0.55;
 }
 .daily-trend .dt-line {
   fill: none;
   stroke: var(--primary);
-  stroke-width: 2.2;
+  stroke-width: 2.4;
   stroke-linecap: round;
 }
 .daily-trend .dt-dot.ok {
