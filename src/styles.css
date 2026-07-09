@@ -338,20 +338,6 @@ button {
 .screen {
   flex: 1;
   padding: 6px 20px 108px;
-  /* ページをめくるような3Dの遷移。左端を軸にパタンと開く。 */
-  transform-origin: left center;
-  backface-visibility: hidden;
-  animation: pageturn 0.42s cubic-bezier(0.2, 0.72, 0.3, 1);
-}
-@keyframes pageturn {
-  from {
-    opacity: 0;
-    transform: perspective(1500px) rotateY(-34deg);
-  }
-  to {
-    opacity: 1;
-    transform: perspective(1500px) rotateY(0deg);
-  }
 }
 @keyframes fade {
   from {
@@ -363,10 +349,61 @@ button {
     transform: none;
   }
 }
-/* 横画面は回転フレーム内のため3Dめくりが不自然になる。シンプルなフェードにする。 */
-.rot-on .screen {
-  animation: fade 0.2s ease;
-  transform: none;
+
+/* --- ページ遷移・初期表示（Loading終了含む）：下からすーっと現れるフェードイン。
+   上の要素から順に少しラグを入れて表示（スタガー）。 --- */
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.screen > *:not(.home-grid):not(.dash-grid),
+.home-main > *,
+.home-side > *,
+.dash-left > *,
+.dash-right > * {
+  animation: riseIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+/* スタガー：上の要素ほど早く、下にいくほど少し遅らせる */
+.screen > *:nth-child(1):not(.home-grid):not(.dash-grid),
+.home-main > *:nth-child(1),
+.home-side > *:nth-child(1),
+.dash-left > *:nth-child(1),
+.dash-right > *:nth-child(1) {
+  animation-delay: 0.03s;
+}
+.screen > *:nth-child(2):not(.home-grid):not(.dash-grid),
+.home-main > *:nth-child(2),
+.home-side > *:nth-child(2),
+.dash-left > *:nth-child(2),
+.dash-right > *:nth-child(2) {
+  animation-delay: 0.09s;
+}
+.screen > *:nth-child(3):not(.home-grid):not(.dash-grid),
+.home-main > *:nth-child(3),
+.home-side > *:nth-child(3),
+.dash-left > *:nth-child(3),
+.dash-right > *:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.screen > *:nth-child(4):not(.home-grid):not(.dash-grid),
+.home-main > *:nth-child(4),
+.home-side > *:nth-child(4),
+.dash-left > *:nth-child(4),
+.dash-right > *:nth-child(4) {
+  animation-delay: 0.21s;
+}
+.screen > *:nth-child(n + 5):not(.home-grid):not(.dash-grid),
+.home-main > *:nth-child(n + 5),
+.home-side > *:nth-child(n + 5),
+.dash-left > *:nth-child(n + 5),
+.dash-right > *:nth-child(n + 5) {
+  animation-delay: 0.27s;
 }
 
 /* --- スクロール／初期表示のリビール（下から浮かび上がり＋ゲージ0→現在値） --- */
@@ -404,9 +441,13 @@ button {
   transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 @media (prefers-reduced-motion: reduce) {
-  /* 3Dのページめくりは控え、シンプルなフェードにする */
-  .screen {
-    animation: fade 0.2s ease;
+  /* スタガーの動きは抑え、すぐに表示する */
+  .screen > *,
+  .home-main > *,
+  .home-side > *,
+  .dash-left > *,
+  .dash-right > * {
+    animation: none;
   }
   .reveal,
   .reveal-in {
