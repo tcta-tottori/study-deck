@@ -259,7 +259,7 @@ export default function Exam({
                 </div>
               </div>
               <div className="resume-actions">
-                <button className="btn primary sm" onClick={() => resumeExam(resume)}>
+                <button className="btn danger sm" onClick={() => resumeExam(resume)}>
                   続きから再開
                 </button>
                 <button className="btn ghost sm" onClick={discardResume}>
@@ -330,13 +330,13 @@ export default function Exam({
       <div className="quiz">
         <div className="quiz-top">
           <div className="quiz-meta exam-run-meta">
-            <button className="btn ghost sm" onClick={() => void suspend()}>
+            <button className="btn danger sm" onClick={() => void suspend()}>
               中断
             </button>
             <span className="exam-qno">
               {cur + 1} / {questions.length}
             </span>
-            <button className="btn ghost sm" onClick={() => void submit()}>
+            <button className="btn danger sm" onClick={() => void submit()}>
               終了
             </button>
           </div>
@@ -375,17 +375,6 @@ export default function Exam({
               終了して採点（{answeredCount}/{questions.length}）
             </button>
           )}
-        </div>
-        <div className="pager">
-          {questions.map((_, i) => (
-            <button
-              key={i}
-              className={`${answers[i] >= 0 ? 'answered' : ''} ${i === cur ? 'current' : ''}`}
-              onClick={() => setCur(i)}
-            >
-              {i + 1}
-            </button>
-          ))}
         </div>
       </div>
     )
