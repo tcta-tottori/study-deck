@@ -349,7 +349,6 @@ export default function Exam({
           </div>
           <div key={q.id} className="stem">{q.stem}</div>
         </div>
-        <div className="quiz-spacer" />
         <div key={q.id} className="choices">
           {q.choices.map((c, i) => (
             <button
