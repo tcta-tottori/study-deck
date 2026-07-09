@@ -222,17 +222,21 @@ function DailyTrend({ days }: { days: { key: string; count: number; correct: num
   const n = days.length
   const W = 340
   const H = 182
-  const padL = 26
-  const padR = 30
-  const padTop = 34
+  const padL = 28
+  const padR = 32
+  const padTop = 30
   const axisY = 150 // 横軸（ベースライン）
+  const plotH = axisY - padTop
   const slot = (W - padL - padR) / n
   const cx = (i: number) => padL + slot * i + slot / 2
   const bw = Math.min(14, slot - 5)
 
-  const maxCount = Math.max(1, ...days.map((d) => d.count))
-  const barH = (c: number) => (c / maxCount) * (axisY - padTop)
-  const accY = (pct: number) => axisY - (pct / 100) * (axisY - padTop)
+  // 回答数20問が正答率60%と同じ高さに来るよう軸を揃える（20/countMax = 60/100）
+  const countMax = 100 / 3
+  const gridY = (c: number) => axisY - (c / countMax) * plotH
+  const barTopY = (c: number) => Math.max(padTop, axisY - (c / countMax) * plotH)
+  const accY = (pct: number) => axisY - (pct / 100) * plotH
+  const gridCounts = [10, 30] // 補助線（10ずつ）。20は目標線として別途描く。
 
   const pts = days.map((d, i) => ({
     i,
@@ -262,15 +266,25 @@ function DailyTrend({ days }: { days: { key: string; count: number; correct: num
       <circle cx={padL + 81} cy={13} r={3.5} className="dt-dot ok" />
       <text x={padL + 97} y={17} className="dt-leg">正答率</text>
 
-      {/* 左軸＝回答数（問） */}
-      <text x={6} y={padTop - 8} className="dt-tick">問</text>
-      <text x={padL - 4} y={padTop + 3} className="dt-tick" textAnchor="end">{maxCount}</text>
-      <text x={padL - 4} y={axisY} className="dt-tick" textAnchor="end">0</text>
+      {/* 補助線（左軸=回答数の10ずつ） */}
+      {gridCounts.map((c) => (
+        <line key={c} x1={padL} y1={gridY(c)} x2={W - padR} y2={gridY(c)} className="dt-grid" />
+      ))}
+      {gridCounts.map((c) => (
+        <text key={`l${c}`} x={padL - 4} y={gridY(c) + 3} className="dt-tick" textAnchor="end">
+          {c}
+        </text>
+      ))}
 
-      {/* 右軸＝正答率（%）と合格ライン60% */}
-      <text x={W - padR + 4} y={padTop + 3} className="dt-tick">100%</text>
-      <line x1={padL} y1={accY(60)} x2={W - padR} y2={accY(60)} className="dt-guide" />
-      <text x={W - padR + 4} y={accY(60) + 3} className="dt-tick">60</text>
+      {/* 目標線：回答数20問＝正答率60% を1本で表現（左に20・右に60） */}
+      <line x1={padL} y1={gridY(20)} x2={W - padR} y2={gridY(20)} className="dt-guide" />
+      <text x={padL - 4} y={gridY(20) + 3} className="dt-goal" textAnchor="end">20</text>
+      <text x={W - padR + 4} y={gridY(20) + 3} className="dt-goal" textAnchor="start">60</text>
+
+      {/* 軸の端ラベル（左＝問/0、右＝100%） */}
+      <text x={6} y={padTop - 8} className="dt-tick">問</text>
+      <text x={padL - 4} y={axisY} className="dt-tick" textAnchor="end">0</text>
+      <text x={W - padR + 4} y={padTop + 3} className="dt-tick" textAnchor="start">100%</text>
 
       {/* 回答数（棒・背景の量） */}
       {days.map((d, i) =>
@@ -278,9 +292,9 @@ function DailyTrend({ days }: { days: { key: string; count: number; correct: num
           <rect
             key={d.key}
             x={cx(i) - bw / 2}
-            y={axisY - barH(d.count)}
+            y={barTopY(d.count)}
             width={bw}
-            height={barH(d.count)}
+            height={axisY - barTopY(d.count)}
             rx={3}
             className="dt-bar bg"
           />
