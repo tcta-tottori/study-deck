@@ -3,7 +3,7 @@ import { useExamResults } from '../hooks/useAppData'
 import { boxDistribution, categoryStats, overallAccuracy, passOutlook } from '../lib/stats'
 import { categoryLabel, type Question, type StudyRecord } from '../types'
 import type { DayActivity } from '../db/db'
-import { computeStreak, dayKey } from '../lib/dateutil'
+import { addDaysKey, computeStreak, dayKey } from '../lib/dateutil'
 import { Icon } from '../components/Icon'
 import { BackHome } from '../components/BackHome'
 import Reveal from '../components/Reveal'
@@ -40,6 +40,20 @@ export default function Dashboard({
     () => computeStreak(new Set(activity.map((a) => a.day)), dayKey(now)),
     [activity, now],
   )
+
+  // 直近14日の日次推移（回答数・正答率）。記録の無い日は0で埋める。
+  const daily = useMemo(() => {
+    const byDay = new Map(activity.map((a) => [a.day, a]))
+    const todayK = dayKey(now)
+    const days: { key: string; count: number; correct: number }[] = []
+    for (let i = 13; i >= 0; i--) {
+      const k = addDaysKey(todayK, -i)
+      const a = byDay.get(k)
+      days.push({ key: k, count: a?.count ?? 0, correct: a?.correct ?? 0 })
+    }
+    return days
+  }, [activity, now])
+  const dailyHasData = daily.some((d) => d.count > 0)
 
   const outlook = passOutlook(data.acc)
   const totalAnswered = data.cats.reduce((s, c) => s + c.answered, 0)
@@ -84,6 +98,20 @@ export default function Dashboard({
           </div>
 
           <div className="dash-right">
+            {/* 日別の学習推移（回答数＋正答率） */}
+            <Reveal>
+              <div className="card">
+                <h2>学習の推移（直近14日）</h2>
+                {dailyHasData ? (
+                  <DailyTrend days={daily} />
+                ) : (
+                  <p className="muted" style={{ marginBottom: 0 }}>
+                    学習を続けると、日ごとの回答数と正答率の推移が表示されます。
+                  </p>
+                )}
+              </div>
+            </Reveal>
+
             {/* カテゴリ別正答率 */}
             <Reveal>
               <div className="card">
@@ -182,6 +210,98 @@ function BoxDist({ dist }: { dist: number[] }) {
         )
       })}
     </div>
+  )
+}
+
+/**
+ * 日別の学習推移。dataviz指針に従い二軸を避け、
+ * 「回答数（棒）」と「正答率（折れ線）」を日付x軸を共有した2パネルで表示する。
+ */
+function DailyTrend({ days }: { days: { key: string; count: number; correct: number }[] }) {
+  const n = days.length
+  const W = 340
+  const padX = 10
+  const slot = (W - padX * 2) / n
+  const cx = (i: number) => padX + slot * i + slot / 2
+  const bw = Math.min(16, slot - 6)
+
+  // 回答数パネル
+  const maxCount = Math.max(1, ...days.map((d) => d.count))
+  const barsTop = 24
+  const barsBase = 118
+  const barH = (c: number) => (c / maxCount) * (barsBase - barsTop)
+
+  // 正答率パネル（0〜100%）
+  const accTop = 158
+  const accBase = 232
+  const accY = (pct: number) => accBase - (pct / 100) * (accBase - accTop)
+
+  const pts = days.map((d, i) => ({
+    i,
+    x: cx(i),
+    has: d.count > 0,
+    pct: d.count > 0 ? Math.round((d.correct / d.count) * 100) : 0,
+  }))
+  // 連続してデータのある日どうしだけを線でつなぐ（空白日はまたがない）
+  const segs: string[] = []
+  for (let i = 1; i < pts.length; i++) {
+    if (pts[i].has && pts[i - 1].has) {
+      segs.push(`M${pts[i - 1].x},${accY(pts[i - 1].pct)} L${pts[i].x},${accY(pts[i].pct)}`)
+    }
+  }
+  const label = (key: string) => {
+    const [, m, d] = key.split('-').map(Number)
+    return `${m}/${d}`
+  }
+  const labelIdx = [0, Math.round((n - 1) / 3), Math.round((2 * (n - 1)) / 3), n - 1]
+
+  return (
+    <svg className="daily-trend" viewBox={`0 0 ${W} 250`} role="img" aria-label="日別の回答数と正答率の推移">
+      {/* --- 回答数（棒） --- */}
+      <text x={padX} y={14} className="dt-title">回答数</text>
+      <text x={W - padX} y={14} className="dt-hint" textAnchor="end">最大 {maxCount}問</text>
+      <line x1={padX} y1={barsBase} x2={W - padX} y2={barsBase} className="dt-axis" />
+      {days.map((d, i) =>
+        d.count > 0 ? (
+          <rect
+            key={d.key}
+            x={cx(i) - bw / 2}
+            y={barsBase - barH(d.count)}
+            width={bw}
+            height={barH(d.count)}
+            rx={3}
+            className="dt-bar"
+          />
+        ) : null,
+      )}
+
+      {/* --- 正答率（折れ線） --- */}
+      <text x={padX} y={148} className="dt-title">正答率</text>
+      {/* 合格ライン 60% */}
+      <line x1={padX} y1={accY(60)} x2={W - padX} y2={accY(60)} className="dt-guide" />
+      <text x={W - padX} y={accY(60) - 3} className="dt-guide-label" textAnchor="end">60%</text>
+      {segs.map((d, i) => (
+        <path key={i} d={d} className="dt-line" />
+      ))}
+      {pts.map((p) =>
+        p.has ? (
+          <circle
+            key={p.i}
+            cx={p.x}
+            cy={accY(p.pct)}
+            r={4}
+            className={p.pct >= 60 ? 'dt-dot ok' : 'dt-dot ng'}
+          />
+        ) : null,
+      )}
+
+      {/* --- 日付ラベル --- */}
+      {labelIdx.map((i) => (
+        <text key={i} x={cx(i)} y={247} className="dt-xlabel" textAnchor="middle">
+          {label(days[i].key)}
+        </text>
+      ))}
+    </svg>
   )
 }
 

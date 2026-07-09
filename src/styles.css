@@ -1897,6 +1897,50 @@ svg.line {
   display: block;
 }
 
+/* --- 日別の学習推移（回答数の棒＋正答率の折れ線） --- */
+svg.daily-trend {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-top: 4px;
+}
+.daily-trend .dt-title {
+  font-size: 11px;
+  font-weight: 800;
+  fill: var(--text);
+}
+.daily-trend .dt-hint,
+.daily-trend .dt-xlabel,
+.daily-trend .dt-guide-label {
+  font-size: 10px;
+  fill: var(--text-dim);
+}
+.daily-trend .dt-axis {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.daily-trend .dt-bar {
+  fill: var(--primary);
+}
+.daily-trend .dt-guide {
+  stroke: var(--correct);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  opacity: 0.6;
+}
+.daily-trend .dt-line {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+.daily-trend .dt-dot.ok {
+  fill: var(--correct);
+}
+.daily-trend .dt-dot.ng {
+  fill: var(--wrong);
+}
+
 /* --- Loading --- */
 .loading {
   position: fixed;
