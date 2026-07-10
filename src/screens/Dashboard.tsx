@@ -289,13 +289,22 @@ function DailyTrend({ days }: { days: Day[] }) {
     has: d.count > 0,
     pct: d.count > 0 ? Math.round((d.correct / d.count) * 100) : 0,
   }))
-  // 連続してデータのある日どうしだけを線でつなぐ（空白日はまたがない）
-  const segs: string[] = []
-  for (let i = 1; i < pts.length; i++) {
-    if (pts[i].has && pts[i - 1].has) {
-      segs.push(`M${pts[i - 1].x},${accY(pts[i - 1].pct)} L${pts[i].x},${accY(pts[i].pct)}`)
+  // 折れ線は1本のパスにまとめる（空白日はまたがず M で分割）。
+  // pathLength=100 と stroke-dashoffset で左から順に描画する。
+  let linePath = ''
+  let pen = false
+  for (const p of pts) {
+    if (p.has) {
+      linePath += `${pen ? 'L' : 'M'}${p.x},${accY(p.pct)} `
+      pen = true
+    } else {
+      pen = false
     }
   }
+  // アニメの左→右スタガー用の遅延（合計スプレッドを一定に保ち日数に依らず一定時間）
+  const frac = (i: number) => (n > 1 ? i / (n - 1) : 0)
+  const barDelay = (i: number) => 0.05 + frac(i) * 0.5
+  const dotDelay = (i: number) => 0.2 + frac(i) * 0.85
   const label = (key: string) => {
     const [, m, d] = key.split('-').map(Number)
     return `${m}/${d}`
@@ -351,7 +360,8 @@ function DailyTrend({ days }: { days: Day[] }) {
             width={bw}
             height={axisY - barTopY(d.count)}
             rx={2.5}
-            className="dt-bar"
+            className="dt-bar dt-bar-col"
+            style={{ animationDelay: `${barDelay(i)}s` }}
           />
         ) : null,
       )}
@@ -359,10 +369,10 @@ function DailyTrend({ days }: { days: Day[] }) {
       {/* 横軸（ベースライン） */}
       <line x1={padL} y1={axisY} x2={W - padR} y2={axisY} className="dt-axis" />
 
-      {/* 正答率（折れ線・主役） */}
-      {segs.map((d, i) => (
-        <path key={i} d={d} className="dt-line" />
-      ))}
+      {/* 正答率（折れ線・主役）。左から順に描画。 */}
+      {linePath && (
+        <path d={linePath} pathLength={100} className="dt-line dt-line-anim" />
+      )}
       {pts.map((p) =>
         p.has ? (
           <circle
@@ -370,7 +380,8 @@ function DailyTrend({ days }: { days: Day[] }) {
             cx={p.x}
             cy={accY(p.pct)}
             r={4}
-            className={p.pct >= 60 ? 'dt-dot ok' : 'dt-dot ng'}
+            className={`dt-dot dt-dot-pt ${p.pct >= 60 ? 'ok' : 'ng'}`}
+            style={{ animationDelay: `${dotDelay(p.i)}s` }}
           />
         ) : null,
       )}
