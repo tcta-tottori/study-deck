@@ -1955,6 +1955,57 @@ svg.daily-trend {
   stroke-width: 1.4;
 }
 
+/* --- 表示アニメーション：棒は下から伸び（左から順にラグ）、折れ線は左から描画、
+   ドットは線の進行に合わせて左から順にポップ。遅延は要素の style で指定。 --- */
+.daily-trend .dt-bar-col {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: dtGrow 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes dtGrow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.daily-trend .dt-line-anim {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: dtDraw 0.9s ease-out 0.15s forwards;
+}
+@keyframes dtDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.daily-trend .dt-dot-pt {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dtPop 0.3s ease both;
+}
+@keyframes dtPop {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .daily-trend .dt-bar-col,
+  .daily-trend .dt-dot-pt,
+  .daily-trend .dt-line-anim {
+    animation: none;
+  }
+  .daily-trend .dt-line-anim {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* 学習推移カードのヘッダー（タイトル＋日数スライダー） */
 .dt-head {
   display: flex;
