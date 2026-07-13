@@ -57,7 +57,35 @@ npm run preview    # ビルド成果物のプレビュー
 id, category, subcategory, stem, choice1, choice2, choice3, choice4, answerIndex, explanation, source
 ```
 
-`answerIndex` は 0〜3（1〜4表記も自動補正）。`category` は仕様の14分類の値（例: `共通_品質管理` / `PLN_生産方式`）。
+`answerIndex` は 0〜3（1〜4表記も自動補正）。`category` は7分類の値（旧14分類も自動変換）。
+
+### 解答後の「正解の理由・不正解の理由」表示（choiceReasons）
+
+解答直後の解説シートでは、正解の選択肢（ア〜エ）と `explanation`（正解の理由）に加え、
+**選択肢ごとの○×と一言理由**を表示できます。JSON取込で各問に `choiceReasons`
+（選択肢アイウエの順に文字列4つの配列）を付けると有効になります（省略時は従来どおり
+`explanation` のみ表示）。○×は `answerIndex` から確定的に描画するため、理由文の先頭に
+`○`/`×` を付けても二重表示にはなりません。
+
+```json
+{
+  "id": "OFF-R07L-01",
+  "origin": "official",
+  "category": "生産システム・生産計画",
+  "subcategory": "管理のサイクル",
+  "stem": "…（問題文）…",
+  "choices": ["PDS", "PDCA", "QCD", "SDCA"],
+  "answerIndex": 3,
+  "explanation": "SDCA は標準（S）を起点に維持・定着を回すサイクルで、標準化を含む。",
+  "choiceReasons": [
+    "計画・実施・評価のみで標準化の要素を含まない。",
+    "改善のサイクルで、標準化そのものを表す用語ではない。",
+    "品質・コスト・納期の管理要素で、管理サイクルではない。",
+    "標準（S）を維持・遵守するサイクルで標準化を含む＝正解。"
+  ],
+  "source": "令和7年度 後期 生産管理プランニング3級 問1"
+}
+```
 
 ## データはすべて端末内
 

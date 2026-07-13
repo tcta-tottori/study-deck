@@ -37,6 +37,15 @@ function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: 
 
   const origin = o.origin === 'original' ? 'original' : 'official'
 
+  // choiceReasons は任意。文字列4つの配列のときだけ採用（それ以外は無視）。
+  let choiceReasons: [string, string, string, string] | undefined
+  const cr = o.choiceReasons
+  if (Array.isArray(cr) && cr.length === 4 && cr.every((c) => typeof c === 'string')) {
+    choiceReasons = cr as [string, string, string, string]
+  } else if (cr !== undefined && cr !== null && cr !== '') {
+    return { error: `${where} (${id}): choiceReasons は文字列4つの配列が必要` }
+  }
+
   seenIds.add(id)
   return {
     q: {
@@ -48,6 +57,7 @@ function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: 
       choices: choices as [string, string, string, string],
       answerIndex: answerIndex as AnswerIndex,
       explanation: typeof o.explanation === 'string' ? o.explanation : '',
+      choiceReasons,
       source: typeof o.source === 'string' ? o.source : undefined,
     },
   }

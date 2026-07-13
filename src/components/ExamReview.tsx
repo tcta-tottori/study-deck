@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { categoryLabel, type ExamResult, type Question } from '../types'
 import { formatDuration } from '../lib/dateutil'
 import { AiAsk } from './AiAsk'
+import { ChoiceReasons } from './ChoiceReasons'
 
 const LETTERS = ['ア', 'イ', 'ウ', 'エ']
 
@@ -161,7 +162,14 @@ export function ExamReview({
                 </div>
               )
             })}
-            {q.explanation && <p style={{ fontSize: 14 }}>{q.explanation}</p>}
+            {q.explanation && (
+              <p style={{ fontSize: 14 }}>
+                <span className="answer-exp-label">正解の理由</span>
+                {q.explanation}
+              </p>
+            )}
+            {/* 各選択肢がなぜ正解／不正解か（choiceReasons がある問題のみ） */}
+            <ChoiceReasons question={q} chosen={mine} />
             {/* AIで詳しく解説してもらう（クイズと共通） */}
             <AiAsk question={q} selectedIndex={mine} compact />
           </div>
