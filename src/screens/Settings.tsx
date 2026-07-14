@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getSettings, updateSettings, db } from '../db/db'
 import type { AppSettings } from '../types'
 import { SUBJECTS, getSubject } from '../lib/subjects'
 import { notificationPermission, requestNotificationPermission } from '../lib/reminder'
+import { exportBackupJson, backupFilename, restoreBackup } from '../lib/backup'
 import { useToast } from '../components/Toast'
 import { BackHome } from '../components/BackHome'
 
@@ -27,6 +28,7 @@ export default function Settings({ onBack }: { onBack: () => void }) {
   const toast = useToast()
   const [s, setS] = useState<AppSettings | null>(null)
   const [perm, setPerm] = useState<string>('default')
+  const restoreRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     getSettings().then(setS)
@@ -56,6 +58,46 @@ export default function Settings({ onBack }: { onBack: () => void }) {
       await db.examResults.clear()
     })
     toast('学習履歴をリセットしました')
+  }
+
+  async function onBackup() {
+    try {
+      const json = await exportBackupJson()
+      const blob = new Blob([json], { type: 'application/json;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = backupFilename()
+      a.click()
+      URL.revokeObjectURL(url)
+      toast('学習データをバックアップしました')
+    } catch (e) {
+      toast('バックアップに失敗しました')
+      console.error(e)
+    }
+  }
+
+  async function onRestoreFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (restoreRef.current) restoreRef.current.value = ''
+    if (!file) return
+    if (
+      !confirm(
+        '現在の学習履歴（SRS・連続日数・模試結果）を、選んだバックアップの内容で置き換えます。よろしいですか？',
+      )
+    )
+      return
+    try {
+      const rep = await restoreBackup(await file.text())
+      setS(await getSettings())
+      const pending = rep.notesPending > 0 ? `／メモ未適用 ${rep.notesPending}件（問題取込後に再復元で反映）` : ''
+      toast(
+        `復元しました：SRS ${rep.studyRecords}件・活動 ${rep.activity}日・模試 ${rep.examResults}件・メモ ${rep.notesApplied}件${pending}`,
+      )
+    } catch (err) {
+      toast((err as Error).message || '復元に失敗しました')
+      console.error(err)
+    }
   }
 
   return (
@@ -184,6 +226,27 @@ export default function Settings({ onBack }: { onBack: () => void }) {
 
         <div className="card">
           <h2>データ</h2>
+          <p className="muted" style={{ fontSize: 13, marginBottom: 10 }}>
+            学習履歴・連続日数・模試結果・設定・メモをまとめて書き出し／読み込みできます。
+            機種変更や端末データ消去に備えて保存してください（問題本文は含みません。公式過去問は
+            取込データから別途取り込むと、IDが一致して履歴とメモが自動でひも付きます）。
+          </p>
+          <div className="review-actions" style={{ marginBottom: 12 }}>
+            <button className="btn primary sm" onClick={onBackup}>
+              学習データをバックアップ
+            </button>
+            <button className="btn sm" onClick={() => restoreRef.current?.click()}>
+              バックアップから復元
+            </button>
+          </div>
+          <input
+            ref={restoreRef}
+            type="file"
+            accept=".json,application/json"
+            onChange={onRestoreFile}
+            style={{ display: 'none' }}
+          />
+          <hr className="sep" />
           <button className="btn ghost" style={{ color: 'var(--wrong)' }} onClick={resetProgress}>
             学習履歴をリセット
           </button>

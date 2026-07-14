@@ -1366,6 +1366,101 @@ button {
 .answer-exp {
   color: var(--text);
 }
+/* 「正解の理由」ラベル（explanation の頭に付く小見出し） */
+.answer-exp-label {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--correct-bg, var(--surface-2));
+  color: var(--correct);
+  font-size: 11px;
+  font-weight: 800;
+  vertical-align: 1px;
+}
+
+/* 選択肢ごとの○×＋理由（正解の理由・不正解の理由をまとめて表示） */
+.choice-reasons {
+  margin-top: 10px;
+}
+.cr-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.cr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cr-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2, transparent);
+}
+.cr-row.cr-correct {
+  border-color: var(--correct);
+  background: var(--correct-bg);
+}
+.cr-row.cr-mine {
+  border-color: var(--wrong);
+  background: var(--wrong-bg);
+}
+.cr-badge {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+}
+.cr-badge.ok {
+  background: var(--correct);
+  color: #fff;
+}
+.cr-badge.ng {
+  background: var(--wrong);
+  color: #fff;
+}
+.cr-body {
+  min-width: 0;
+}
+.cr-choice {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.cr-letter {
+  color: var(--text-dim);
+}
+.cr-mine-tag {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--wrong);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  vertical-align: 1px;
+}
+.cr-reason {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
 
 /* AIに詳しく聞く（アプリ/サイトを開いて質問・プロンプトは自動コピー） */
 .ai-ask {

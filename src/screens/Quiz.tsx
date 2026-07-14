@@ -10,6 +10,7 @@ import { formatClock, dayKey } from '../lib/dateutil'
 import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
 import { AiAsk } from '../components/AiAsk'
+import { ChoiceReasons } from '../components/ChoiceReasons'
 
 export interface QuizConfig {
   limit?: number
@@ -349,7 +350,15 @@ function Explanation({
             {CHOICE_LETTERS[question.answerIndex]}．{question.choices[question.answerIndex]}
           </span>
         </div>
-        {question.explanation && <p className="answer-exp">{question.explanation}</p>}
+        {question.explanation && (
+          <p className="answer-exp">
+            <span className="answer-exp-label">正解の理由</span>
+            {question.explanation}
+          </p>
+        )}
+
+        {/* 各選択肢がなぜ正解／不正解か（choiceReasons がある問題のみ） */}
+        <ChoiceReasons question={question} chosen={chosen} />
 
         {/* AIアプリで詳しい解説を確認（API不要・アプリ/サイトを開いて質問） */}
         <AiAsk question={question} selectedIndex={chosen} />

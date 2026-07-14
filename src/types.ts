@@ -34,6 +34,11 @@ export interface Question {
   choices: [string, string, string, string]
   answerIndex: AnswerIndex
   explanation: string
+  /**
+   * 各選択肢（ア・イ・ウ・エ＝index 0〜3）が「なぜ正解／なぜ不正解か」の一言理由。
+   * 指定時は解答後に選択肢ごとの○×と理由を表示する。省略時は explanation のみ。
+   */
+  choiceReasons?: [string, string, string, string]
   source?: string
   /** ユーザーが後から手入力/AI生成した補足解説（seedは上書きしない） */
   aiExplanation?: string

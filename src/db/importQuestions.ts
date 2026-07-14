@@ -37,6 +37,15 @@ function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: 
 
   const origin = o.origin === 'original' ? 'original' : 'official'
 
+  // choiceReasons は任意。文字列4つの配列のときだけ採用（それ以外は無視）。
+  let choiceReasons: [string, string, string, string] | undefined
+  const cr = o.choiceReasons
+  if (Array.isArray(cr) && cr.length === 4 && cr.every((c) => typeof c === 'string')) {
+    choiceReasons = cr as [string, string, string, string]
+  } else if (cr !== undefined && cr !== null && cr !== '') {
+    return { error: `${where} (${id}): choiceReasons は文字列4つの配列が必要` }
+  }
+
   seenIds.add(id)
   return {
     q: {
@@ -48,9 +57,22 @@ function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: 
       choices: choices as [string, string, string, string],
       answerIndex: answerIndex as AnswerIndex,
       explanation: typeof o.explanation === 'string' ? o.explanation : '',
+      choiceReasons,
       source: typeof o.source === 'string' ? o.source : undefined,
     },
   }
+}
+
+/**
+ * 取込済みの公式問題（origin==='official'）をすべて削除する。
+ * 学習データ（studyRecords／activity／examResults／設定）には一切触れないため、
+ * 同じIDで再取込すれば学習履歴はそのまま復活する。
+ * 返り値は削除した問題数。
+ */
+export async function resetOfficialQuestions(): Promise<number> {
+  const ids = await db.questions.where('origin').equals('official').primaryKeys()
+  if (ids.length) await db.questions.bulkDelete(ids as string[])
+  return ids.length
 }
 
 /** JSON文字列（Question配列）をパースして取込む */
