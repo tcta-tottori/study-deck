@@ -6,6 +6,7 @@ import { generateExplanation } from '../lib/ai'
 import { getSettings } from '../db/db'
 import { categoryLabel, type Question } from '../types'
 import { categoryColor } from '../lib/categoryMap'
+import { questionSourceLabel } from '../lib/exam'
 import { formatClock, dayKey } from '../lib/dateutil'
 import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
@@ -232,6 +233,10 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
               )
             })}
           </div>
+          {/* 画面下部右詰めで薄く出典（例: 令和7年度 後期 問15）を表示 */}
+          {questionSourceLabel(current.id) && (
+            <div className="q-source">{questionSourceLabel(current.id)}</div>
+          )}
         </div>
       </div>
 

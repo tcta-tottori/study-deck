@@ -1,3 +1,9 @@
+/** ローカル当日の0:00のepoch ms（その日の学習済み判定に使う） */
+export function startOfLocalDay(ts: number): number {
+  const d = new Date(ts)
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+}
+
 /** ローカルタイムの 'YYYY-MM-DD' */
 export function dayKey(ts: number): string {
   const d = new Date(ts)
