@@ -1379,9 +1379,49 @@ button {
   vertical-align: 1px;
 }
 
+/* 解説シート上部：正誤バッジと表示モード切替を横並びに */
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+/* 詳細／シンプル 切替（セグメント） */
+.answer-mode-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px;
+}
+.answer-mode-toggle button {
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.answer-mode-toggle button.on {
+  background: var(--primary);
+  color: var(--primary-ink);
+}
+
 /* 選択肢ごとの○×＋理由（正解の理由・不正解の理由をまとめて表示） */
 .choice-reasons {
   margin-top: 10px;
+}
+/* シンプルモード：記号＋理由だけの1行表示（選択肢文は省く） */
+.cr-row.cr-compact {
+  align-items: flex-start;
+  padding: 7px 10px;
+}
+.cr-row.cr-compact .cr-reason {
+  margin-top: 0;
+  font-weight: 500;
 }
 .cr-title {
   font-size: 12px;

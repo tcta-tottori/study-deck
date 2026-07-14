@@ -3,8 +3,8 @@ import { db } from '../db/db'
 import { buildQueue } from '../srs/srs'
 import { recordAnswer, saveNote, saveAiExplanation } from '../lib/study'
 import { generateExplanation } from '../lib/ai'
-import { getSettings } from '../db/db'
-import { categoryLabel, type Question } from '../types'
+import { getSettings, updateSettings } from '../db/db'
+import { categoryLabel, type AnswerMode, type Question } from '../types'
 import { categoryColor } from '../lib/categoryMap'
 import { formatClock, dayKey } from '../lib/dateutil'
 import { useToast } from '../components/Toast'
@@ -41,6 +41,8 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
   })
   const [remaining, setRemaining] = useState(config.timeboxSec ?? 0)
   const [timeUp, setTimeUp] = useState(false)
+  // 解答後フィードバックの表示モード（設定と同期。学習中の切替もここで保持）
+  const [answerMode, setAnswerMode] = useState<AnswerMode>('detailed')
   const touchStartX = useRef<number | null>(null)
   // 採点の二重実行ガード（setChosen は非同期のため、連打で recordAnswer が
   // 2回走り回答数が実際より増える不具合を同期的に防ぐ）
@@ -76,7 +78,10 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
     ;(async () => {
       const s = await getSettings()
       const a = await db.activity.get(dayKey(Date.now()))
-      if (alive) setBaseProgress({ count: a?.count ?? 0, goal: s.dailyGoal })
+      if (alive) {
+        setBaseProgress({ count: a?.count ?? 0, goal: s.dailyGoal })
+        setAnswerMode(s.answerMode ?? 'detailed')
+      }
     })()
     return () => {
       alive = false
@@ -120,6 +125,12 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
     setChosen(null)
     setBox(null)
     setIdx((i) => i + 1)
+  }
+
+  // 学習中の表示モード切替。即時反映＋設定に保存して次回以降も維持。
+  function changeAnswerMode(m: AnswerMode) {
+    setAnswerMode(m)
+    void updateSettings({ answerMode: m })
   }
 
   // 中断に強い：終了/完走判定。
@@ -245,6 +256,8 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
           box={box}
           onNext={next}
           toast={toast}
+          answerMode={answerMode}
+          onChangeAnswerMode={changeAnswerMode}
         />
       )}
     </div>
@@ -292,6 +305,8 @@ function Explanation({
   box,
   onNext,
   toast,
+  answerMode,
+  onChangeAnswerMode,
 }: {
   question: Question
   correct: boolean
@@ -299,7 +314,10 @@ function Explanation({
   box: number | null
   onNext: () => void
   toast: (m: React.ReactNode) => void
+  answerMode: AnswerMode
+  onChangeAnswerMode: (m: AnswerMode) => void
 }) {
+  const simple = answerMode === 'simple'
   const [showNote, setShowNote] = useState(false)
   const [note, setNote] = useState(question.note ?? '')
   const [ai, setAi] = useState(question.aiExplanation ?? '')
@@ -335,13 +353,32 @@ function Explanation({
   return (
     <div className="quiz-sheet">
       <div className="sheet-body">
-        <div className={`verdict ${correct ? 'ok' : 'ng'}`}>
-          {correct ? '正解！' : '不正解'}
-          {box && (
-            <span className="chip box" style={{ marginLeft: 10 }}>
-              box {box}
-            </span>
-          )}
+        <div className="sheet-head">
+          <div className={`verdict ${correct ? 'ok' : 'ng'}`}>
+            {correct ? '正解！' : '不正解'}
+            {box && (
+              <span className="chip box" style={{ marginLeft: 10 }}>
+                box {box}
+              </span>
+            )}
+          </div>
+          {/* 表示モード切替（学習中に詳細⇄シンプルを変更。設定にも保存される） */}
+          <div className="answer-mode-toggle" role="group" aria-label="解説の表示モード">
+            <button
+              className={!simple ? 'on' : ''}
+              aria-pressed={!simple}
+              onClick={() => onChangeAnswerMode('detailed')}
+            >
+              詳細
+            </button>
+            <button
+              className={simple ? 'on' : ''}
+              aria-pressed={simple}
+              onClick={() => onChangeAnswerMode('simple')}
+            >
+              シンプル
+            </button>
+          </div>
         </div>
         {/* アプリ内の回答表示：解説が無い問題でも必ず正解を提示する */}
         <div className="answer">
@@ -358,12 +395,12 @@ function Explanation({
         )}
 
         {/* 各選択肢がなぜ正解／不正解か（choiceReasons がある問題のみ） */}
-        <ChoiceReasons question={question} chosen={chosen} />
+        <ChoiceReasons question={question} chosen={chosen} mode={answerMode} />
 
-        {/* AIアプリで詳しい解説を確認（API不要・アプリ/サイトを開いて質問） */}
-        <AiAsk question={question} selectedIndex={chosen} />
+        {/* AIアプリで詳しい解説を確認（シンプルモードでは非表示にして簡潔に保つ） */}
+        {!simple && <AiAsk question={question} selectedIndex={chosen} />}
 
-        {ai && (
+        {!simple && ai && (
           <p style={{ borderTop: '1px solid var(--border)', paddingTop: 8 }}>
             <strong>AI解説：</strong>
             {ai}
@@ -395,7 +432,7 @@ function Explanation({
         >
           <Icon name="pencil" size={18} />
         </button>
-        {hasKey && !ai && (
+        {!simple && hasKey && !ai && (
           <button className="btn sm" onClick={genAi} disabled={aiLoading}>
             {aiLoading ? '…' : 'AI'}
           </button>

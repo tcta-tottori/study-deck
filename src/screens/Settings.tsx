@@ -181,6 +181,19 @@ export default function Settings({ onBack }: { onBack: () => void }) {
               <option value="dark">ダーク</option>
             </select>
           </label>
+          <label className="field" style={{ marginBottom: 0 }}>
+            <span className="lbl">解答後の解説の表示</span>
+            <select
+              value={s.answerMode ?? 'detailed'}
+              onChange={(e) => patch({ answerMode: e.target.value as AppSettings['answerMode'] })}
+            >
+              <option value="detailed">詳細（全選択肢の理由を表示）</option>
+              <option value="simple">シンプル（正解＋不正解の理由だけ）</option>
+            </select>
+          </label>
+          <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+            ※ 学習中の解説シート右上の「詳細／シンプル」からも切り替えできます。
+          </p>
         </div>
 
         <div className="card">

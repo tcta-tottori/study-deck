@@ -104,6 +104,11 @@ export interface AppSettings {
   landscape: boolean // 横画面モード（UIを回転して強制横表示。自動回転ではない）
   reminderTime?: string // "HH:MM" ローカル通知
   theme: 'auto' | 'light' | 'dark'
+  /** 解答後の解説の表示量。detailed=全選択肢の理由も表示 / simple=正解＋不正解の理由だけ簡潔に */
+  answerMode?: AnswerMode
   anthropicApiKey?: string // 端末ローカル保存・非コミット
   seedVersion?: number
 }
+
+/** 解答後フィードバックの表示モード */
+export type AnswerMode = 'detailed' | 'simple'
