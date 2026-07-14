@@ -32,6 +32,17 @@ export function sessionLabel(year: number, term: 'early' | 'late'): string {
   return `令和${year}年度 ${term === 'early' ? '前期' : '後期'}`
 }
 
+/**
+ * 問題IDから「令和7年度 後期 問15」形式の出典ラベルを作る。
+ * 公式ID（OFF-R{YY}{E|L}-{NN}）以外は null。
+ */
+export function questionSourceLabel(id: string): string | null {
+  const m = /^OFF-R(\d{1,2})(E|L)-0*(\d+)/i.exec(id)
+  if (!m) return null
+  const term = m[2].toUpperCase() === 'E' ? 'early' : 'late'
+  return `${sessionLabel(Number(m[1]), term)} 問${Number(m[3])}`
+}
+
 /** 取込済み問題から受験可能な回の一覧（新しい年度→古い、同年度は後期→前期の順） */
 export function listSessions(questions: Question[]): ExamSession[] {
   const map = new Map<string, ExamSession>()

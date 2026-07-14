@@ -1,4 +1,5 @@
 import type { Box, StudyRecord, Question } from '../types'
+import { startOfLocalDay } from '../lib/dateutil'
 
 const DAY = 24 * 60 * 60 * 1000
 
@@ -70,9 +71,12 @@ export interface QueueOptions {
 }
 
 /**
- * 出題キューを構築する。
- * 1. dueAt <= now を優先。その中で box 小さい順 → dueAt 古い順。
- * 2. キューが尽きたら未学習問題を投入。
+ * 出題キューを構築する（メイン学習）。
+ * 方針（今日の学習の重複防止・全ジャンル満遍なく）:
+ * 1. その日に既に解いた問題は出さない（中断→再開でも同じ問題が出ない）。
+ * 2. 未出題（未学習）を全7ジャンル満遍なく（インターリービング）出すのを最優先。
+ * 3. 未出題が尽きたら、前日以前に学習して復習期限が来たものをジャンル均等で補完。
+ * ※ 間違い復習は別ボタン（wrongOnly）で行う。
  */
 export function buildQueue(
   questions: Question[],
@@ -94,7 +98,7 @@ export function buildQueue(
   const withRec = pool.map((q) => ({ q, rec: records.get(q.id) }))
 
   if (wrongOnly) {
-    // box1・2、または未学習でも一度でも間違えたもの中心。ここでは box1・2 に限定。
+    // 間違い復習（別ボタン）: box1・2 を集中反復。ここは当日除外しない。
     const due = withRec
       .filter((x) => x.rec && (x.rec.box === 1 || x.rec.box === 2))
       .sort(cmpDue(now))
@@ -102,26 +106,30 @@ export function buildQueue(
     return limit ? due.slice(0, limit) : due
   }
 
-  // 1) 復習期限が来たもの（間隔反復の核）。box 小さい＝直近で間違えた/苦手を優先。
-  const dueNow = withRec
-    .filter((x) => x.rec && x.rec.lastAnswered > 0 && x.rec.dueAt <= now)
-    .sort(cmpDue(now))
-    .map((x) => x.q)
+  // 出題を特定IDに限定（試験結果からの復習など）はそのIDを出題順で（当日除外しない）。
+  if (questionIds && questionIds.length > 0) {
+    return limit ? pool.slice(0, limit) : pool
+  }
 
-  // 2) 未学習は、カテゴリを偏りなく（インターリービング）出しつつ、
-  //    正答率が低い/回答数の少ないカテゴリを優先して導入する。
+  // その日に解いた問題は除外（中断→再開で同じ問題を出さない）。
+  const todayStart = startOfLocalDay(now)
+  const answeredToday = (rec?: StudyRecord) => !!rec && rec.lastAnswered >= todayStart
+  const notToday = withRec.filter((x) => !answeredToday(x.rec))
+  const priority = categoryPriority(withRec)
+
+  // 1) 未出題（未学習）を全ジャンル満遍なく。最優先。
   const unseen = balanceByCategory(
-    withRec.filter((x) => !x.rec || x.rec.lastAnswered === 0).map((x) => x.q),
-    categoryPriority(withRec),
+    notToday.filter((x) => !x.rec || x.rec.lastAnswered === 0).map((x) => x.q),
+    priority,
   )
 
-  // 3) 未来due（まだ時間ではない）は最後の保険として box 小さい順で足す
-  const future = withRec
-    .filter((x) => x.rec && x.rec.lastAnswered > 0 && x.rec.dueAt > now)
-    .sort(cmpDue(now))
-    .map((x) => x.q)
+  // 2) 前日以前に学習し復習期限が来たものをジャンル均等で補完（未出題が尽きたとき）。
+  const dueReview = balanceByCategory(
+    notToday.filter((x) => x.rec && x.rec.lastAnswered > 0 && x.rec.dueAt <= now).map((x) => x.q),
+    priority,
+  )
 
-  const queue = [...dueNow, ...unseen, ...future]
+  const queue = [...unseen, ...dueReview]
   return limit ? queue.slice(0, limit) : queue
 }
 

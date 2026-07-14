@@ -1379,6 +1379,15 @@ button {
   vertical-align: 1px;
 }
 
+/* 出典ラベル（画面下部・右詰め・薄文字）。例: 令和7年度 後期 問15 */
+.q-source {
+  margin-top: 14px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--text-dim);
+  opacity: 0.7;
+}
+
 /* 解説シート上部：正誤バッジと正解の記号を横並びに */
 .sheet-head {
   display: flex;
