@@ -1,6 +1,13 @@
 import { useRef, useState } from 'react'
-import { CSV_TEMPLATE, importFromCsv, importFromJson, type ImportReport } from '../db/importQuestions'
+import {
+  CSV_TEMPLATE,
+  importFromCsv,
+  importFromJson,
+  resetOfficialQuestions,
+  type ImportReport,
+} from '../db/importQuestions'
 import { useQuestions } from '../hooks/useAppData'
+import { listSessions } from '../lib/exam'
 import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
 import { BackHome } from '../components/BackHome'
@@ -12,7 +19,7 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null)
 
   const officialCount = (questions ?? []).filter((q) => q.origin === 'official').length
-  const originalCount = (questions ?? []).filter((q) => q.origin === 'original').length
+  const sessionCount = listSessions(questions ?? []).length
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -24,6 +31,22 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
     setReport(rep)
     if (rep.added + rep.updated > 0) toast(`${rep.added}件追加・${rep.updated}件更新`)
     if (fileRef.current) fileRef.current.value = ''
+  }
+
+  async function onReset() {
+    if (officialCount === 0) {
+      toast('取込済みの公式問題はありません')
+      return
+    }
+    if (
+      !confirm(
+        `取込済みの公式問題 ${officialCount}問 をすべて削除します。\n学習履歴（SRS・連続日数・模試結果）は削除されません。同じデータを取り込み直せば履歴もそのまま復活します。\n\n削除してよろしいですか？`,
+      )
+    )
+      return
+    const n = await resetOfficialQuestions()
+    setReport(null)
+    toast(`公式問題 ${n}問 を削除しました`)
   }
 
   function downloadTemplate() {
@@ -46,11 +69,11 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
         <div className="statrow">
           <div className="stat">
             <div className="num">{officialCount}</div>
-            <div className="lbl">公式（取込）</div>
+            <div className="lbl">取込問題数</div>
           </div>
           <div className="stat">
-            <div className="num">{originalCount}</div>
-            <div className="lbl">オリジナル</div>
+            <div className="num">{sessionCount}</div>
+            <div className="lbl">受験可能な回</div>
           </div>
         </div>
 
@@ -77,6 +100,18 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
           <button className="btn ghost" style={{ marginTop: 10 }} onClick={downloadTemplate}>
             CSVテンプレートをダウンロード
           </button>
+          <button
+            className="btn ghost"
+            style={{ marginTop: 10, color: 'var(--wrong)' }}
+            onClick={onReset}
+            disabled={officialCount === 0}
+          >
+            取込データをリセット（{officialCount}問）
+          </button>
+          <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+            ※ リセットは取り込んだ問題だけを削除します。学習履歴・連続日数・模試結果は残るため、
+            取り込み直せば履歴もそのまま使えます。
+          </p>
         </div>
 
         {report && (

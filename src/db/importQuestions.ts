@@ -63,6 +63,18 @@ function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: 
   }
 }
 
+/**
+ * 取込済みの公式問題（origin==='official'）をすべて削除する。
+ * 学習データ（studyRecords／activity／examResults／設定）には一切触れないため、
+ * 同じIDで再取込すれば学習履歴はそのまま復活する。
+ * 返り値は削除した問題数。
+ */
+export async function resetOfficialQuestions(): Promise<number> {
+  const ids = await db.questions.where('origin').equals('official').primaryKeys()
+  if (ids.length) await db.questions.bulkDelete(ids as string[])
+  return ids.length
+}
+
 /** JSON文字列（Question配列）をパースして取込む */
 export async function importFromJson(text: string): Promise<ImportReport> {
   let parsed: unknown

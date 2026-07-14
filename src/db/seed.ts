@@ -1,38 +1,29 @@
 import { db, getSettings, updateSettings } from './db'
 import type { Question } from '../types'
 import { normalizeCategory } from '../lib/categoryMap'
-import seedRaw from '../data/questions.seed.json'
-
-/** seed のバージョン。seed を追記・修正したら上げると再取込される（既存の学習履歴は保持） */
-const SEED_VERSION = 2
-
-const seed = seedRaw as Question[]
 
 /**
- * 初回起動時（または seed 更新時）に original 問題を Dexie へ取り込む。
- * - official 問題やユーザーが編集した note/aiExplanation は保持する。
+ * オリジナル（同梱の練習問題 origin==='original'）を廃止する一度きりの移行。
+ * 公式過去問の取込で運用する方針に合わせ、同梱originalは自動投入しない。
+ *
+ * - 既存端末に残っている original 問題を削除する。
+ * - それに紐づく studyRecords（宙に浮いた記録）も併せて削除し、
+ *   「復習待ち」件数や正答率などの集計が実在しない問題で狂わないようにする。
+ * - 連続学習日数（activity）・模試履歴（examResults）・公式問題のSRS記録は保持するため、
+ *   学習の実績そのものには影響しない。
+ * - 端末ごとに1回だけ実行する（localStorage フラグで管理）。
  */
-export async function ensureSeeded(): Promise<void> {
-  const settings = await getSettings()
-  if ((settings.seedVersion ?? 0) >= SEED_VERSION) return
-
-  await db.transaction('rw', db.questions, async () => {
-    for (const q of seed) {
-      const existing = await db.questions.get(q.id)
-      if (existing) {
-        // ユーザー編集分（note/aiExplanation）を残して本文だけ更新
-        await db.questions.put({
-          ...q,
-          note: existing.note,
-          aiExplanation: existing.aiExplanation ?? q.aiExplanation,
-        })
-      } else {
-        await db.questions.put(q)
-      }
-    }
-  })
-
-  await updateSettings({ seedVersion: SEED_VERSION })
+export async function abolishOriginals(): Promise<void> {
+  const KEY = 'originals-abolished-v1'
+  if (localStorage.getItem(KEY)) return
+  const ids = (await db.questions.where('origin').equals('original').primaryKeys()) as string[]
+  if (ids.length) {
+    await db.transaction('rw', db.questions, db.studyRecords, async () => {
+      await db.questions.bulkDelete(ids)
+      await db.studyRecords.bulkDelete(ids) // 宙に浮く記録だけ掃除。activity/examResults は触れない
+    })
+  }
+  localStorage.setItem(KEY, '1')
 }
 
 /**
