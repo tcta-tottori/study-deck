@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { categoryLabel, type ExamResult, type Question } from '../types'
 import { formatDuration } from '../lib/dateutil'
-import { useSettings } from '../hooks/useAppData'
 import { AiAsk } from './AiAsk'
 import { ChoiceReasons } from './ChoiceReasons'
 
@@ -29,8 +28,6 @@ export function ExamReview({
   footer?: React.ReactNode
 }) {
   const [reviewOnly, setReviewOnly] = useState(true)
-  const settings = useSettings()
-  const simple = (settings?.answerMode ?? 'detailed') === 'simple'
 
   const items = useMemo(
     () =>
@@ -171,10 +168,10 @@ export function ExamReview({
                 {q.explanation}
               </p>
             )}
-            {/* 各選択肢がなぜ正解／不正解か（choiceReasons がある問題のみ） */}
-            <ChoiceReasons question={q} chosen={mine} mode={simple ? 'simple' : 'detailed'} />
-            {/* AIで詳しく解説してもらう（シンプルモードでは非表示） */}
-            {!simple && <AiAsk question={q} selectedIndex={mine} compact />}
+            {/* 不正解の選択肢がなぜ違うか（choiceReasons がある問題のみ） */}
+            <ChoiceReasons question={q} chosen={mine} />
+            {/* AIで詳しく解説してもらう（クイズと共通） */}
+            <AiAsk question={q} selectedIndex={mine} compact />
           </div>
         )
       })}

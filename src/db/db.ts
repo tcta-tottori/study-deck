@@ -45,7 +45,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   examDate: '2026-10-04', // 試験日（既定 10月4日）。設定で変更可能。
   landscape: false,
   theme: 'light', // ベースは白（明るいテーマ）を既定に
-  answerMode: 'detailed',
   seedVersion: 0,
 }
 
