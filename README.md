@@ -3,6 +3,7 @@
 ビジネス・キャリア検定「生産管理プランニング3級」合格を目的とした、**スマホのスキマ時間で苦手優先に高速反復**するための学習PWAです。React 19 + TypeScript + Vite + Dexie(IndexedDB) 製。**外部通信なし・オフライン完全動作**（AI解説など任意機能を除く）。
 
 > 仕様の詳細は [`seisan-quiz-SPEC.md`](./seisan-quiz-SPEC.md) を参照。
+> 他環境で動かす／作り直す手順は [`docs/ENVIRONMENT-REPRODUCTION.md`](./docs/ENVIRONMENT-REPRODUCTION.md) を参照。
 
 **🔗 公開デモ: https://tcta-tottori.github.io/study-deck/**（スマホで開いて「ホーム画面に追加」でPWA化・オフライン利用可）
 
