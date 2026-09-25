@@ -57,6 +57,9 @@ export default function Home({
     }
   }, [activity, records, questions, todayKey, now])
 
+  // 今日の誤答数（音声復習カードの見出しに出す）
+  const todayWrong = Math.max(0, todayCount - todayCorrect)
+
   const goal = settings.dailyGoal
   const goalPct = Math.min(100, Math.round((todayCount / goal) * 100))
   // 今日の正答率（今日まだ解いていないときは非表示＝「—」）
@@ -195,6 +198,26 @@ export default function Home({
             </div>
           </div>
         </section>
+        </Reveal>
+
+        {/* 音声で復習（端末内蔵の音声合成で解説を読み上げ） */}
+        <Reveal>
+        <button className="voicecard" onClick={() => go('voice')}>
+          <span className="vc-ic">
+            <Icon name="speaker" size={20} />
+          </span>
+          <span className="vc-body">
+            <span className="vc-title">音声で復習</span>
+            <span className="vc-desc">
+              {todayWrong > 0
+                ? `今日間違えた${todayWrong}問を、耳で聞いて確認`
+                : '間違えた問題・苦手分野を読み上げ'}
+            </span>
+          </span>
+          <span className="vc-arrow">
+            <Icon name="arrow" size={18} />
+          </span>
+        </button>
         </Reveal>
 
         {/* 試験形式（今日の学習と同様、要素を1枠にまとめた赤いカード） */}

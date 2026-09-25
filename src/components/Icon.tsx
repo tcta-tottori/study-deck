@@ -26,6 +26,11 @@ export type IconName =
   | 'swap'
   | 'sun'
   | 'moon'
+  | 'speaker'
+  | 'play'
+  | 'pause'
+  | 'prev'
+  | 'next'
 
 const PATHS: Record<IconName, ReactElement> = {
   home: (
@@ -179,6 +184,37 @@ const PATHS: Record<IconName, ReactElement> = {
   ),
   // 月（ダークモード）
   moon: <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />,
+  // スピーカー（音声解説）
+  speaker: (
+    <>
+      <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z" />
+      <path d="M15.5 9.2a4 4 0 0 1 0 5.6" />
+      <path d="M18 6.6a7.5 7.5 0 0 1 0 10.8" />
+    </>
+  ),
+  // 再生
+  play: <path d="M7 4.8 19 12 7 19.2z" strokeLinejoin="round" />,
+  // 一時停止
+  pause: (
+    <>
+      <rect x="6.5" y="4.5" width="4" height="15" rx="1.2" />
+      <rect x="13.5" y="4.5" width="4" height="15" rx="1.2" />
+    </>
+  ),
+  // 前へ（セクション戻り）
+  prev: (
+    <>
+      <path d="M18 5.5 9.5 12 18 18.5z" strokeLinejoin="round" />
+      <line x1="6" y1="5.5" x2="6" y2="18.5" />
+    </>
+  ),
+  // 次へ（セクション送り）
+  next: (
+    <>
+      <path d="M6 5.5 14.5 12 6 18.5z" strokeLinejoin="round" />
+      <line x1="18" y1="5.5" x2="18" y2="18.5" />
+    </>
+  ),
 }
 
 export function Icon({

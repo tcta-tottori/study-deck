@@ -8,14 +8,16 @@ import Dashboard from './screens/Dashboard'
 import ImportScreen from './screens/Import'
 import Settings from './screens/Settings'
 import ExamHistory from './screens/ExamHistory'
+import VoiceReview from './screens/VoiceReview'
 import Toast, { ToastCtx, useToastState } from './components/Toast'
 import { scheduleDailyReminder } from './lib/reminder'
 import { Icon, type IconName } from './components/Icon'
 
-export type View = 'home' | 'quiz' | 'exam' | 'dashboard' | 'import' | 'settings' | 'exams'
+export type View = 'home' | 'quiz' | 'exam' | 'dashboard' | 'import' | 'settings' | 'exams' | 'voice'
 
 const NAV_ITEMS: { view: View; label: string; icon: IconName }[] = [
   { view: 'home', label: 'ホーム', icon: 'home' },
+  { view: 'voice', label: '音声復習', icon: 'speaker' },
   { view: 'dashboard', label: '成績', icon: 'chart' },
   { view: 'import', label: '取込', icon: 'import' },
   { view: 'settings', label: '設定', icon: 'gear' },
@@ -210,7 +212,13 @@ export default function App() {
             activity={safeActivity}
           />
         )}
-        {view === 'quiz' && <Quiz config={quizConfig} onExit={() => setView('home')} />}
+        {view === 'quiz' && (
+          <Quiz
+            config={quizConfig}
+            onExit={() => setView('home')}
+            onVoiceReview={() => setView('voice')}
+          />
+        )}
         {view === 'exam' && <Exam onExit={() => setView('home')} onReview={startQuiz} />}
         {view === 'dashboard' && (
           <Dashboard
@@ -225,6 +233,16 @@ export default function App() {
         {view === 'settings' && <Settings onBack={() => setView('home')} />}
         {view === 'exams' && (
           <ExamHistory onHome={() => setView('home')} onReview={startQuiz} />
+        )}
+        {view === 'voice' && (
+          <VoiceReview
+            settings={settings}
+            questions={safeQuestions}
+            records={safeRecords}
+            activity={safeActivity}
+            onHome={() => setView('home')}
+            onStartQuiz={startQuiz}
+          />
         )}
         </div>
 

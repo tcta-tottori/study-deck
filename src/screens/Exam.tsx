@@ -205,7 +205,7 @@ export default function Exam({
       byCategory[cat].total++
       if (isCorrect) byCategory[cat].correct++
       // 回答済のみSRSへ反映（誤答はbox1へ→見直し対象）
-      if (a >= 0) await recordAnswer(q, a)
+      if (a >= 0) await recordAnswer(q, a, 'exam')
     }
 
     const total = questions.length

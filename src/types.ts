@@ -93,6 +93,21 @@ export interface ExamProgress {
   savedAt: number
 }
 
+/**
+ * 誤答ログ（音声解説の「当日の間違い」「よく間違える問題」の集計に使う）。
+ * StudyRecord は最新状態しか持たないため、いつ・何を間違えたかを別途1件ずつ記録する。
+ */
+export interface WrongLog {
+  id?: number
+  /** ローカル日付 'YYYY-MM-DD'（当日の誤答抽出に使う） */
+  day: string
+  at: number
+  questionId: string
+  /** 選んでしまった選択肢（-1 = 未回答のまま提出） */
+  chosen: number
+  mode: 'quiz' | 'exam'
+}
+
 export interface AppSettings {
   key: 'app'
   /** 学習中の科目（試験）ID。lib/subjects.ts の SUBJECTS を参照 */
@@ -106,4 +121,14 @@ export interface AppSettings {
   theme: 'auto' | 'light' | 'dark'
   anthropicApiKey?: string // 端末ローカル保存・非コミット
   seedVersion?: number
+  /** 音声解説（端末内蔵の音声合成）で使う声の名前。未設定なら日本語の声を自動選択 */
+  voiceName?: string
+  /** 読み上げ速度（0.7〜1.6。既定1.0） */
+  voiceRate?: number
+  /** 読み上げに問題文を含めるか（既定true） */
+  voiceIncludeStem?: boolean
+  /** 「苦手・頻出」モードで読み上げる問題数（既定5） */
+  voiceWeakCount?: number
+  /** 音声解説の画面を開いたら自動で再生を始めるか（既定false） */
+  voiceAutoPlay?: boolean
 }

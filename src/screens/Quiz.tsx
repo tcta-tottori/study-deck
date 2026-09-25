@@ -26,7 +26,16 @@ export interface QuizConfig {
 
 const CHOICE_LETTERS = ['ア', 'イ', 'ウ', 'エ']
 
-export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: () => void }) {
+export default function Quiz({
+  config,
+  onExit,
+  onVoiceReview,
+}: {
+  config: QuizConfig
+  onExit: () => void
+  /** セッション終了後に「今日の間違いを音声で復習」へ遷移する（任意） */
+  onVoiceReview?: () => void
+}) {
   const toast = useToast()
   const [queue, setQueue] = useState<Question[] | null>(null)
   const [idx, setIdx] = useState(0)
@@ -169,7 +178,23 @@ export default function Quiz({ config, onExit }: { config: QuizConfig; onExit: (
             <div className="lbl">正答率</div>
           </div>
         </div>
-        <button className="btn primary" onClick={onExit}>
+        {onVoiceReview && answeredCount - correctCount > 0 && (
+          <button
+            className="btn primary"
+            style={{ marginBottom: 10, width: '100%' }}
+            onClick={onVoiceReview}
+          >
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="speaker" size={18} />
+              今日の間違いを音声で復習
+            </span>
+          </button>
+        )}
+        <button
+          className={`btn${onVoiceReview && answeredCount - correctCount > 0 ? '' : ' primary'}`}
+          style={{ width: '100%' }}
+          onClick={onExit}
+        >
           ホームへ戻る
         </button>
       </ResultLike>
