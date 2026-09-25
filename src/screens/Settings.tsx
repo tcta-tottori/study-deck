@@ -51,12 +51,20 @@ export default function Settings({ onBack }: { onBack: () => void }) {
   }
 
   async function resetProgress() {
-    if (!confirm('学習履歴（SRS・活動・模試結果）をすべて削除します。よろしいですか？')) return
-    await db.transaction('rw', db.studyRecords, db.activity, db.examResults, async () => {
-      await db.studyRecords.clear()
-      await db.activity.clear()
-      await db.examResults.clear()
-    })
+    if (!confirm('学習履歴（SRS・活動・模試結果・誤答ログ）をすべて削除します。よろしいですか？')) return
+    await db.transaction(
+      'rw',
+      db.studyRecords,
+      db.activity,
+      db.examResults,
+      db.wrongLog,
+      async () => {
+        await db.studyRecords.clear()
+        await db.activity.clear()
+        await db.examResults.clear()
+        await db.wrongLog.clear()
+      },
+    )
     toast('学習履歴をリセットしました')
   }
 
@@ -92,7 +100,7 @@ export default function Settings({ onBack }: { onBack: () => void }) {
       setS(await getSettings())
       const pending = rep.notesPending > 0 ? `／メモ未適用 ${rep.notesPending}件（問題取込後に再復元で反映）` : ''
       toast(
-        `復元しました：SRS ${rep.studyRecords}件・活動 ${rep.activity}日・模試 ${rep.examResults}件・メモ ${rep.notesApplied}件${pending}`,
+        `復元しました：SRS ${rep.studyRecords}件・活動 ${rep.activity}日・模試 ${rep.examResults}件・誤答ログ ${rep.wrongLog}件・メモ ${rep.notesApplied}件${pending}`,
       )
     } catch (err) {
       toast((err as Error).message || '復元に失敗しました')
@@ -204,6 +212,58 @@ export default function Settings({ onBack }: { onBack: () => void }) {
           {perm === 'granted' && <p className="muted">通知は許可されています。</p>}
           <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
             ※ iOSのPWA通知には制約があります。未対応時はアプリ起動中にバナー表示へフォールバックします。
+          </p>
+        </div>
+
+        <div className="card">
+          <h2>音声で復習</h2>
+          <p className="muted" style={{ fontSize: 13, marginBottom: 10 }}>
+            端末に入っている音声合成で解説を読み上げます（通信・APIキー不要。追加費用もかかりません）。
+            ホームの「音声で復習」から再生できます。
+          </p>
+          <label className="field">
+            <span className="lbl">読み上げ速度（{(s.voiceRate ?? 1).toFixed(1)}倍）</span>
+            <input
+              type="range"
+              min={0.7}
+              max={1.6}
+              step={0.1}
+              value={s.voiceRate ?? 1}
+              onChange={(e) => patch({ voiceRate: Number(e.target.value) })}
+            />
+          </label>
+          <label className="field">
+            <span className="lbl">「苦手・頻出」で読み上げる問題数</span>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={s.voiceWeakCount ?? 5}
+              onChange={(e) =>
+                patch({ voiceWeakCount: Math.min(20, Math.max(1, Number(e.target.value) || 1)) })
+              }
+            />
+          </label>
+          <div className="switch" style={{ marginBottom: 8 }}>
+            <span>問題文も読み上げる</span>
+            <button
+              className={`toggle ${s.voiceIncludeStem !== false ? 'on' : ''}`}
+              aria-pressed={s.voiceIncludeStem !== false}
+              onClick={() => patch({ voiceIncludeStem: !(s.voiceIncludeStem !== false) })}
+            />
+          </div>
+          <div className="switch" style={{ marginBottom: 0 }}>
+            <span>画面を開いたら自動で再生する</span>
+            <button
+              className={`toggle ${s.voiceAutoPlay ? 'on' : ''}`}
+              aria-pressed={!!s.voiceAutoPlay}
+              onClick={() => patch({ voiceAutoPlay: !s.voiceAutoPlay })}
+            />
+          </div>
+          <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+            ※ 声の種類は「音声で復習」画面で選べます（端末にインストールされている音声から選択）。
+            iPhoneは設定＞アクセシビリティ＞読み上げコンテンツ＞声、Androidは設定＞ユーザー補助＞テキスト読み上げ、
+            から日本語の音声を追加すると、より自然に読み上げられます。
           </p>
         </div>
 

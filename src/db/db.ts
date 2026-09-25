@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie'
-import type { Question, StudyRecord, ExamResult, ExamProgress, AppSettings } from '../types'
+import type { Question, StudyRecord, ExamResult, ExamProgress, AppSettings, WrongLog } from '../types'
 import { DEFAULT_SUBJECT_ID } from '../lib/subjects'
+import { dayKey } from '../lib/dateutil'
 
 /** 1日の学習量ログ（ストリーク・日次目標・活動グラフ用） */
 export interface DayActivity {
@@ -17,6 +18,8 @@ export class StudyDB extends Dexie {
   activity!: Table<DayActivity, string>
   /** 中断中の本番シミュレーション（'current' の1件のみ） */
   examProgress!: Table<ExamProgress, string>
+  /** 誤答ログ（音声解説の当日ふりかえり・頻出誤答の集計用） */
+  wrongLog!: Table<WrongLog, number>
 
   constructor() {
     super('study-deck')
@@ -30,6 +33,10 @@ export class StudyDB extends Dexie {
     // v2: 中断（続きから再開）用のテーブルを追加。既存テーブルはそのまま引き継がれる。
     this.version(2).stores({
       examProgress: 'id',
+    })
+    // v3: 誤答ログ（音声解説のふりかえり用）。既存テーブルはそのまま引き継がれる。
+    this.version(3).stores({
+      wrongLog: '++id, day, questionId, at',
     })
   }
 }
@@ -79,4 +86,32 @@ export async function getExamProgress(): Promise<ExamProgress | undefined> {
 /** 中断中の試験を破棄（提出・完了・新規開始時に呼ぶ） */
 export async function clearExamProgress(): Promise<void> {
   await db.examProgress.delete(EXAM_PROGRESS_ID)
+}
+
+// --- 誤答ログ（音声解説のふりかえり用）---
+
+/** 誤答ログの保持日数（これより古い記録は書き込み時に間引く） */
+const WRONG_LOG_KEEP_DAYS = 180
+
+/** 指定日（既定は当日）の誤答ログを古い順で返す */
+export async function getWrongLogsByDay(day: string = dayKey(Date.now())): Promise<WrongLog[]> {
+  const logs = await db.wrongLog.where('day').equals(day).toArray()
+  return logs.sort((a, b) => a.at - b.at)
+}
+
+/** 直近 days 日分の誤答ログ（新しい順） */
+export async function getRecentWrongLogs(days = 30): Promise<WrongLog[]> {
+  const since = Date.now() - days * 24 * 60 * 60 * 1000
+  const logs = await db.wrongLog.where('at').above(since).toArray()
+  return logs.sort((a, b) => b.at - a.at)
+}
+
+/** 保持期間を過ぎた誤答ログを削除（肥大化防止。失敗しても学習は妨げない） */
+export async function pruneWrongLogs(now = Date.now()): Promise<void> {
+  const cutoff = now - WRONG_LOG_KEEP_DAYS * 24 * 60 * 60 * 1000
+  try {
+    await db.wrongLog.where('at').below(cutoff).delete()
+  } catch {
+    /* 失敗は無視（次回の書き込み時に再試行される） */
+  }
 }

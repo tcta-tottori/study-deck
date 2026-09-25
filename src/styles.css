@@ -2585,3 +2585,309 @@ svg.daily-trend {
   line-height: 1.7;
   padding: 2px 6px;
 }
+
+/* --- 音声で復習（ホームの導線カード） --- */
+.voicecard {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  text-align: left;
+  transition: transform 0.08s;
+}
+.voicecard:active {
+  transform: scale(0.99);
+}
+.voicecard .vc-ic {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: var(--tile-purple);
+  color: var(--primary);
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.voicecard .vc-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.voicecard .vc-title {
+  font-weight: 800;
+  font-size: 15px;
+}
+.voicecard .vc-desc {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.voicecard .vc-arrow {
+  color: var(--text-dim);
+  flex: 0 0 auto;
+}
+
+/* --- 音声で復習（プレイヤー画面） --- */
+.vr-modes {
+  display: flex;
+  width: 100%;
+}
+.vr-modes button {
+  flex: 1;
+}
+.vr-player {
+  background: linear-gradient(150deg, var(--hero-from), var(--hero-to));
+  color: var(--on-hero);
+  border-radius: 26px;
+  padding: 18px;
+  box-shadow: var(--shadow-hero);
+  margin-bottom: 16px;
+}
+.vr-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.vr-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 16px;
+  color: #fff;
+}
+.vr-ic {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  align-items: center;
+  justify-content: center;
+}
+.vr-sum {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+}
+.vr-now {
+  margin: 14px 0 12px;
+  min-height: 76px;
+  font-size: 16px;
+  line-height: 1.7;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+.vr-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+.vr-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #fff;
+  transition: width 0.25s ease;
+}
+.vr-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 6px;
+}
+.vr-ctrls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 14px 0 6px;
+}
+.vr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  transition: transform 0.08s;
+}
+.vr-btn:active {
+  transform: scale(0.94);
+}
+.vr-btn:disabled,
+.vr-play:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.vr-play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--primary-2);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+  transition: transform 0.08s;
+}
+.vr-play:active {
+  transform: scale(0.96);
+}
+.vr-rate,
+.vr-voice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.vr-rate-lbl {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.85);
+  flex: 0 0 auto;
+}
+.vr-rate .seg {
+  margin: 0;
+  background: rgba(255, 255, 255, 0.16);
+  flex: 1;
+  display: flex;
+}
+.vr-rate .seg button {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+}
+.vr-rate .seg button.on {
+  background: #fff;
+  color: var(--primary-2);
+}
+.vr-voice select {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 13px;
+  font-family: inherit;
+}
+.vr-voice select option {
+  color: var(--text);
+  background: var(--surface);
+}
+.vr-note {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.85) !important;
+  margin: 10px 0 0;
+}
+
+/* 原稿（読み上げ中の行をハイライト） */
+.vr-script {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.vr-sec {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 12px 14px;
+  opacity: 0.75;
+  transition: opacity 0.2s;
+}
+.vr-sec.active {
+  opacity: 1;
+  box-shadow: var(--shadow), 0 0 0 2px var(--primary);
+}
+.vr-sec-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.vr-sec-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--primary);
+}
+.vr-sec-sub {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  text-align: right;
+}
+.vr-line {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text);
+}
+.vr-line.cur {
+  background: var(--tile-blue);
+  font-weight: 700;
+}
+.vr-line-lbl {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+  margin-bottom: 2px;
+}
+.vr-line.vr-answer .vr-line-lbl {
+  color: var(--correct);
+}
+.vr-line.vr-mine .vr-line-lbl,
+.vr-line.vr-why .vr-line-lbl {
+  color: var(--wrong);
+}
+.vr-line.vr-intro,
+.vr-line.vr-outro {
+  color: var(--text-dim);
+  font-size: 13.5px;
+}
+.vr-actions {
+  margin-top: 16px;
+}
+.vr-foot {
+  font-size: 11.5px;
+  text-align: center;
+  margin-top: 12px;
+}
+.vr-switch {
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  transition: transform 0.08s;
+}
+.vr-switch:active {
+  transform: scale(0.99);
+}
