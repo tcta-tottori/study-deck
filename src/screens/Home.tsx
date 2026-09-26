@@ -38,14 +38,16 @@ export default function Home({
     if (id !== settings.subjectId) void updateSettings({ subjectId: id })
   }
 
-  const { streak, todayCount, todayCorrect, due, unseen, cats } = useMemo(() => {
+  const { streak, todayCount, todayCorrect, due, unseen, cats, weakCount } = useMemo(() => {
     const days = new Set(activity.map((a) => a.day))
     const today = activity.find((a) => a.day === todayKey)
-    // 未学習（まだ一度も解いていない）問題数
+    // 未学習（まだ一度も解いていない）問題数と、1回以上間違えた問題数
     let unseenN = 0
+    let weakN = 0
     for (const q of questions) {
       const r = records.get(q.id)
       if (!r || r.lastAnswered === 0) unseenN++
+      if (r && r.wrongCount > 0) weakN++
     }
     return {
       streak: computeStreak(days, todayKey),
@@ -53,6 +55,7 @@ export default function Home({
       todayCorrect: today?.correct ?? 0,
       due: dueCount(records, now),
       unseen: unseenN,
+      weakCount: weakN,
       cats: categoryStats(questions, records),
     }
   }, [activity, records, questions, todayKey, now])
@@ -212,6 +215,26 @@ export default function Home({
               {todayWrong > 0
                 ? `今日間違えた${todayWrong}問を、耳で聞いて確認`
                 : '間違えた問題・苦手分野を読み上げ'}
+            </span>
+          </span>
+          <span className="vc-arrow">
+            <Icon name="arrow" size={18} />
+          </span>
+        </button>
+        </Reveal>
+
+        {/* まとめノート（項目ごとのHTML学習資料） */}
+        <Reveal>
+        <button className="voicecard sheetcard" onClick={() => go('sheet')}>
+          <span className="vc-ic">
+            <Icon name="book" size={20} />
+          </span>
+          <span className="vc-body">
+            <span className="vc-title">まとめノート</span>
+            <span className="vc-desc">
+              {weakCount > 0
+                ? `間違いのある${weakCount}問を項目別に見やすく`
+                : '項目ごとの問題・解説をHTMLで読む'}
             </span>
           </span>
           <span className="vc-arrow">

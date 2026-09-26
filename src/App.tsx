@@ -9,15 +9,26 @@ import ImportScreen from './screens/Import'
 import Settings from './screens/Settings'
 import ExamHistory from './screens/ExamHistory'
 import VoiceReview from './screens/VoiceReview'
+import StudySheet from './screens/StudySheet'
 import Toast, { ToastCtx, useToastState } from './components/Toast'
 import { scheduleDailyReminder } from './lib/reminder'
 import { Icon, type IconName } from './components/Icon'
 
-export type View = 'home' | 'quiz' | 'exam' | 'dashboard' | 'import' | 'settings' | 'exams' | 'voice'
+export type View =
+  | 'home'
+  | 'quiz'
+  | 'exam'
+  | 'dashboard'
+  | 'import'
+  | 'settings'
+  | 'exams'
+  | 'voice'
+  | 'sheet'
 
 const NAV_ITEMS: { view: View; label: string; icon: IconName }[] = [
   { view: 'home', label: 'ホーム', icon: 'home' },
   { view: 'voice', label: '音声復習', icon: 'speaker' },
+  { view: 'sheet', label: 'まとめ', icon: 'book' },
   { view: 'dashboard', label: '成績', icon: 'chart' },
   { view: 'import', label: '取込', icon: 'import' },
   { view: 'settings', label: '設定', icon: 'gear' },
@@ -233,6 +244,14 @@ export default function App() {
         {view === 'settings' && <Settings onBack={() => setView('home')} />}
         {view === 'exams' && (
           <ExamHistory onHome={() => setView('home')} onReview={startQuiz} />
+        )}
+        {view === 'sheet' && (
+          <StudySheet
+            questions={safeQuestions}
+            records={safeRecords}
+            onHome={() => setView('home')}
+            onStartQuiz={startQuiz}
+          />
         )}
         {view === 'voice' && (
           <VoiceReview
