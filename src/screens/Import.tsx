@@ -11,6 +11,7 @@ import { listSessions } from '../lib/exam'
 import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
 import { BackHome } from '../components/BackHome'
+import BackupPanel from '../components/BackupPanel'
 
 export default function ImportScreen({ onHome }: { onHome: () => void }) {
   const toast = useToast()
@@ -145,6 +146,8 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
             )}
           </div>
         )}
+
+        <BackupPanel />
 
         <div className="card">
           <h2>CSVの列</h2>

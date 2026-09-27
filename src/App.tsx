@@ -241,7 +241,9 @@ export default function App() {
           />
         )}
         {view === 'import' && <ImportScreen onHome={() => setView('home')} />}
-        {view === 'settings' && <Settings onBack={() => setView('home')} />}
+        {view === 'settings' && (
+          <Settings onBack={() => setView('home')} onGoImport={() => setView('import')} />
+        )}
         {view === 'exams' && (
           <ExamHistory onHome={() => setView('home')} onReview={startQuiz} />
         )}
