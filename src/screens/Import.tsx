@@ -11,6 +11,7 @@ import { listSessions } from '../lib/exam'
 import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
 import { BackHome } from '../components/BackHome'
+import BackupPanel from '../components/BackupPanel'
 
 export default function ImportScreen({ onHome }: { onHome: () => void }) {
   const toast = useToast()
@@ -121,6 +122,11 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
               追加 <strong>{report.added}</strong> 件／更新 <strong>{report.updated}</strong> 件／
               有効 {report.total} 件
             </p>
+            {report.notesRestored > 0 && (
+              <p style={{ color: 'var(--correct)' }}>
+                バックアップから復元待ちだったメモ {report.notesRestored} 件を、この取込で反映しました。
+              </p>
+            )}
             {report.errors.length > 0 ? (
               <>
                 <p style={{ color: 'var(--wrong)', fontWeight: 700 }}>
@@ -140,6 +146,8 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
             )}
           </div>
         )}
+
+        <BackupPanel />
 
         <div className="card">
           <h2>CSVの列</h2>

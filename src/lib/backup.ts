@@ -1,16 +1,22 @@
-import { db, getSettings, updateSettings, type DayActivity } from '../db/db'
-import type { StudyRecord, ExamResult, AppSettings, WrongLog } from '../types'
+import { db, getSettings, updateSettings, savePendingNotes, type DayActivity } from '../db/db'
+import type { StudyRecord, ExamResult, AppSettings, WrongLog, Question } from '../types'
 
 /**
  * 学習データのバックアップ／復元。
  * 対象は「端末内の学習成果」— SRS記録・日次活動（ストリーク）・模試履歴・誤答ログ・設定・
- * 各問題に付けたメモ/AI解説。問題本文（公式過去問）は著作物のため含めず、取込データから
- * 別途取り込む前提とする（IDが一致すればメモとSRS記録は自動でひも付く）。
+ * 各問題に付けたメモ/AI解説。
+ *
+ * 取り込んだ問題本文は既定で同梱する（機種変更のときに1ファイルで元どおりにするため）。
+ * 公開リポジトリには入れず、端末内で作られ端末内へ戻すだけのファイルという位置づけ。
+ * 含めたくない場合は設定でオフにできる（その場合は復元後に取込が必要）。
+ *
+ * 問題より先に復元した場合でもメモを失わないよう、対象問題が未取込のメモは
+ * pendingNotes に退避し、取込時に自動で反映する。
  *
  * APIキー（anthropicApiKey）は端末ローカルの秘密情報のためバックアップに含めない。
  */
 export const BACKUP_KIND = 'studydrill-learning-data'
-export const BACKUP_VERSION = 2
+export const BACKUP_VERSION = 3
 
 export interface NoteEntry {
   id: string
@@ -28,6 +34,8 @@ export interface BackupFile {
   examResults: ExamResult[]
   /** 誤答ログ（v2以降。無いバックアップも読み込める） */
   wrongLog?: WrongLog[]
+  /** 取り込んだ問題（v3以降・任意。含まれていれば復元時にそのまま戻る） */
+  questions?: Question[]
   settings: Partial<AppSettings>
   notes: NoteEntry[]
 }
@@ -37,12 +45,18 @@ export interface RestoreReport {
   activity: number
   examResults: number
   wrongLog: number
+  /** 復元した問題数（バックアップに問題が含まれていなければ0） */
+  questions: number
   notesApplied: number
+  /** 対象問題が未取込のため保留にしたメモ件数（取込時に自動反映される） */
   notesPending: number
 }
 
-/** 現在の学習データをまとめて1つのバックアップオブジェクトにする */
-export async function buildBackup(): Promise<BackupFile> {
+/**
+ * 現在の学習データをまとめて1つのバックアップオブジェクトにする。
+ * includeQuestions（既定true）で、取り込んだ問題本文も同梱するか選べる。
+ */
+export async function buildBackup(includeQuestions = true): Promise<BackupFile> {
   const [studyRecords, activity, examResults, wrongLog, settings, questions] = await Promise.all([
     db.studyRecords.toArray(),
     db.activity.toArray(),
@@ -68,14 +82,15 @@ export async function buildBackup(): Promise<BackupFile> {
     activity,
     examResults,
     wrongLog,
+    questions: includeQuestions ? questions : undefined,
     settings: safeSettings,
     notes,
   }
 }
 
 /** バックアップJSON文字列を生成（ダウンロード用） */
-export async function exportBackupJson(): Promise<string> {
-  return JSON.stringify(await buildBackup(), null, 2)
+export async function exportBackupJson(includeQuestions = true): Promise<string> {
+  return JSON.stringify(await buildBackup(includeQuestions), null, 2)
 }
 
 /** バックアップファイル名（studydrill-backup-YYYYMMDD-HHmm.json） */
@@ -98,14 +113,15 @@ function isBackup(o: unknown): o is BackupFile {
 
 /**
  * バックアップJSONから学習データを復元する。
- * SRS記録・活動・模試履歴は「置き換え」、設定はマージ、メモは既存問題に適用する。
- * メモの対象問題がまだ取り込まれていない場合は notesPending として件数を返す
- * （公式過去問を取り込んでからもう一度復元すれば適用される）。
+ * SRS記録・活動・模試履歴・誤答ログは「置き換え」、設定はマージ、問題は含まれていれば併合、
+ * メモは既存問題に適用する。対象問題がまだ無いメモは保留（pendingNotes）に退避し、
+ * 問題を取り込んだ時点で自動的に反映される（＝復元の順番を気にしなくてよい）。
  */
 export async function restoreBackup(text: string): Promise<RestoreReport> {
   let parsed: unknown
   try {
-    parsed = JSON.parse(text)
+    // BOM・前後の空白を落としてから解析（端末やエディタ経由で付くことがある）
+    parsed = JSON.parse(text.replace(/^\uFEFF/, '').trim())
   } catch (e) {
     throw new Error(`JSONの解析に失敗しました: ${(e as Error).message}`)
   }
@@ -115,7 +131,8 @@ export async function restoreBackup(text: string): Promise<RestoreReport> {
   const b = parsed
 
   let notesApplied = 0
-  let notesPending = 0
+  const pending: NoteEntry[] = []
+  let restoredQuestions = 0
 
   // テーブル数が多いため配列形式で指定する（Dexieの可変長引数は6テーブルまで）
   await db.transaction(
@@ -136,18 +153,44 @@ export async function restoreBackup(text: string): Promise<RestoreReport> {
         await db.wrongLog.bulkAdd(b.wrongLog.map(({ id: _id, ...rest }) => rest as WrongLog))
       }
 
-      // メモ／AI解説は、その問題が取込済みの場合のみ適用
+      // 問題本文が含まれていれば併合（既存のメモ／AI解説は保持する）
+      if (b.questions?.length) {
+        for (const q of b.questions) {
+          if (!q || typeof q.id !== 'string') continue
+          const cur = await db.questions.get(q.id)
+          await db.questions.put({
+            ...q,
+            note: q.note ?? cur?.note,
+            aiExplanation: q.aiExplanation ?? cur?.aiExplanation,
+          })
+          restoredQuestions++
+        }
+      }
+
+      // メモ／AI解説は、その問題が取込済みの場合に適用。未取込ぶんは保留に回す。
       for (const n of b.notes ?? []) {
+        if (!n || typeof n.id !== 'string') continue
         const q = await db.questions.get(n.id)
         if (q) {
-          await db.questions.put({ ...q, note: n.note, aiExplanation: n.aiExplanation })
+          await db.questions.put({
+            ...q,
+            note: n.note ?? q.note,
+            aiExplanation: n.aiExplanation ?? q.aiExplanation,
+          })
           notesApplied++
         } else {
-          notesPending++
+          pending.push(n)
         }
       }
     },
   )
+
+  // 未適用のメモは保留テーブルへ。問題を取り込んだ時点で自動的に反映される。
+  if (pending.length > 0) {
+    await savePendingNotes(
+      pending.map((n) => ({ id: n.id, note: n.note, aiExplanation: n.aiExplanation })),
+    )
+  }
 
   // 設定はマージ（APIキーはバックアップに無いので現在の値を維持）。key は固定。
   if (b.settings && typeof b.settings === 'object') {
@@ -160,7 +203,8 @@ export async function restoreBackup(text: string): Promise<RestoreReport> {
     activity: b.activity.length,
     examResults: b.examResults.length,
     wrongLog: b.wrongLog?.length ?? 0,
+    questions: restoredQuestions,
     notesApplied,
-    notesPending,
+    notesPending: pending.length,
   }
 }

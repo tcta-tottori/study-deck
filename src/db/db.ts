@@ -3,6 +3,13 @@ import type { Question, StudyRecord, ExamResult, ExamProgress, AppSettings, Wron
 import { DEFAULT_SUBJECT_ID } from '../lib/subjects'
 import { dayKey } from '../lib/dateutil'
 
+/** 問題より先に復元されたメモ／AI解説（取込時に自動適用される） */
+export interface PendingNote {
+  id: string // questionId
+  note?: string
+  aiExplanation?: string
+}
+
 /** 1日の学習量ログ（ストリーク・日次目標・活動グラフ用） */
 export interface DayActivity {
   day: string // 'YYYY-MM-DD'（ローカル）
@@ -20,6 +27,11 @@ export class StudyDB extends Dexie {
   examProgress!: Table<ExamProgress, string>
   /** 誤答ログ（音声解説の当日ふりかえり・頻出誤答の集計用） */
   wrongLog!: Table<WrongLog, number>
+  /**
+   * 復元したが対象問題がまだ取り込まれていないメモ／AI解説。
+   * 問題を取り込んだ時点で自動的に questions へ反映され、ここからは削除される。
+   */
+  pendingNotes!: Table<PendingNote, string>
 
   constructor() {
     super('study-deck')
@@ -37,6 +49,10 @@ export class StudyDB extends Dexie {
     // v3: 誤答ログ（音声解説のふりかえり用）。既存テーブルはそのまま引き継がれる。
     this.version(3).stores({
       wrongLog: '++id, day, questionId, at',
+    })
+    // v4: 復元待ちのメモ（問題より先にバックアップを復元したときの取りこぼし防止）。
+    this.version(4).stores({
+      pendingNotes: 'id',
     })
   }
 }
@@ -86,6 +102,44 @@ export async function getExamProgress(): Promise<ExamProgress | undefined> {
 /** 中断中の試験を破棄（提出・完了・新規開始時に呼ぶ） */
 export async function clearExamProgress(): Promise<void> {
   await db.examProgress.delete(EXAM_PROGRESS_ID)
+}
+
+// --- 復元待ちメモ（問題の取込前に復元したぶんを取りこぼさない）---
+
+/** 対象問題が未取込のメモを保存（同じIDは上書き） */
+export async function savePendingNotes(notes: PendingNote[]): Promise<void> {
+  if (notes.length === 0) return
+  await db.pendingNotes.bulkPut(notes)
+}
+
+/**
+ * 保留中のメモのうち、対象問題が取り込み済みのものを questions へ反映する。
+ * 反映できたものは保留から削除する。戻り値は反映した件数。
+ * 問題取込後とアプリ起動時に呼ぶ（何度呼んでも安全）。
+ */
+export async function applyPendingNotes(): Promise<number> {
+  const pending = await db.pendingNotes.toArray()
+  if (pending.length === 0) return 0
+  let applied = 0
+  await db.transaction('rw', db.questions, db.pendingNotes, async () => {
+    for (const n of pending) {
+      const q = await db.questions.get(n.id)
+      if (!q) continue
+      await db.questions.put({
+        ...q,
+        note: n.note ?? q.note,
+        aiExplanation: n.aiExplanation ?? q.aiExplanation,
+      })
+      await db.pendingNotes.delete(n.id)
+      applied++
+    }
+  })
+  return applied
+}
+
+/** 保留中メモの件数（設定画面の案内表示に使う） */
+export async function pendingNotesCount(): Promise<number> {
+  return db.pendingNotes.count()
 }
 
 // --- 誤答ログ（音声解説のふりかえり用）---
