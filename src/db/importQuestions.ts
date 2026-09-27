@@ -1,4 +1,4 @@
-import { db } from './db'
+import { db, applyPendingNotes } from './db'
 import { type Question, type AnswerIndex } from '../types'
 import { normalizeCategory } from '../lib/categoryMap'
 
@@ -8,6 +8,8 @@ export interface ImportReport {
   updated: number
   errors: string[]
   total: number
+  /** バックアップ復元で保留になっていたメモのうち、この取込で反映できた件数 */
+  notesRestored: number
 }
 
 function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: Question; error?: string } {
@@ -81,7 +83,14 @@ export async function importFromJson(text: string): Promise<ImportReport> {
   try {
     parsed = JSON.parse(text)
   } catch (e) {
-    return { ok: false, added: 0, updated: 0, total: 0, errors: [`JSONの解析に失敗: ${(e as Error).message}`] }
+    return {
+      ok: false,
+      added: 0,
+      updated: 0,
+      total: 0,
+      notesRestored: 0,
+      errors: [`JSONの解析に失敗: ${(e as Error).message}`],
+    }
   }
   const arr = Array.isArray(parsed) ? parsed : [parsed]
   return commit(arr)
@@ -94,7 +103,8 @@ export async function importFromJson(text: string): Promise<ImportReport> {
  */
 export async function importFromCsv(text: string): Promise<ImportReport> {
   const rows = parseCsv(text)
-  if (rows.length === 0) return { ok: false, added: 0, updated: 0, total: 0, errors: ['空のCSVです'] }
+  if (rows.length === 0)
+    return { ok: false, added: 0, updated: 0, total: 0, notesRestored: 0, errors: ['空のCSVです'] }
 
   let start = 0
   const header = rows[0].map((c) => c.trim().toLowerCase())
@@ -156,7 +166,10 @@ async function commit(arr: unknown[]): Promise<ImportReport> {
     })
   }
 
-  return { ok: errors.length === 0, added, updated, total: valid.length, errors }
+  // 問題より先にバックアップを復元していた場合の保留メモを、ここで自動的に反映する
+  const notesRestored = valid.length > 0 ? await applyPendingNotes() : 0
+
+  return { ok: errors.length === 0, added, updated, total: valid.length, notesRestored, errors }
 }
 
 /** RFC4180風の簡易CSVパーサ（ダブルクォート・改行・カンマ対応） */

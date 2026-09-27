@@ -121,6 +121,11 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
               追加 <strong>{report.added}</strong> 件／更新 <strong>{report.updated}</strong> 件／
               有効 {report.total} 件
             </p>
+            {report.notesRestored > 0 && (
+              <p style={{ color: 'var(--correct)' }}>
+                バックアップから復元待ちだったメモ {report.notesRestored} 件を、この取込で反映しました。
+              </p>
+            )}
             {report.errors.length > 0 ? (
               <>
                 <p style={{ color: 'var(--wrong)', fontWeight: 700 }}>

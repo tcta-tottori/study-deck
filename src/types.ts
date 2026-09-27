@@ -131,4 +131,6 @@ export interface AppSettings {
   voiceWeakCount?: number
   /** 音声解説の画面を開いたら自動で再生を始めるか（既定false） */
   voiceAutoPlay?: boolean
+  /** バックアップに取込済みの問題本文も含めるか（既定true＝1ファイルで元どおりにできる） */
+  backupIncludeQuestions?: boolean
 }
