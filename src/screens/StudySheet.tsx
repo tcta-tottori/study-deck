@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { QuizConfig } from './Quiz'
 import type { Category, Question, StudyRecord } from '../types'
 import { CATEGORIES } from '../types'
@@ -18,6 +19,7 @@ import { useToast } from '../components/Toast'
  * まとめノート画面。
  * 「項目（カテゴリ）× 間違いが多い問題／全問題」でHTMLの学習資料を組み立て、
  * その場でプレビュー（実際に保存されるHTMLをiframeで表示）・保存・印刷できる。
+ * プレビューは「全画面で見る」で画面いっぱいのビューアに切り替えられる。
  */
 export default function StudySheet({
   questions,
@@ -35,7 +37,24 @@ export default function StudySheet({
   const [scope, setScope] = useState<SheetScope>('weak')
   const [includeChoices, setIncludeChoices] = useState(true)
   const [includeNotes, setIncludeNotes] = useState(true)
+  const [full, setFull] = useState(false)
   const frameRef = useRef<HTMLIFrameElement>(null)
+  const fullFrameRef = useRef<HTMLIFrameElement>(null)
+
+  // 全画面ビューア表示中は Esc で閉じ、背面ページのスクロールを止める
+  useEffect(() => {
+    if (!full) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFull(false)
+    }
+    window.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [full])
 
   // カテゴリ選択チップ用の集計（問題数・正答率・誤答のある問題数）
   const catSummary = useMemo(() => {
@@ -83,7 +102,7 @@ export default function StudySheet({
   }
 
   function print() {
-    const win = frameRef.current?.contentWindow
+    const win = (full ? fullFrameRef : frameRef).current?.contentWindow
     if (!win) return
     try {
       win.focus()
@@ -170,8 +189,14 @@ export default function StudySheet({
               {scopeLabel} <b>{sheet.items.length}</b>問
             </span>
           </div>
+          <button className="btn primary ss-full-btn" onClick={() => setFull(true)} disabled={empty}>
+            <span className="ss-btn-in">
+              <Icon name="expand" size={18} strokeWidth={2} />
+              全画面で見る
+            </span>
+          </button>
           <div className="ss-actions">
-            <button className="btn primary sm" onClick={download} disabled={empty}>
+            <button className="btn sm" onClick={download} disabled={empty}>
               <span className="ss-btn-in">
                 <Icon name="import" size={17} />
                 HTMLで保存
@@ -179,7 +204,7 @@ export default function StudySheet({
             </button>
             <button className="btn sm" onClick={print} disabled={empty}>
               <span className="ss-btn-in">
-                <Icon name="clipboard" size={17} />
+                <Icon name="printer" size={17} />
                 印刷・PDF
               </span>
             </button>
@@ -208,11 +233,14 @@ export default function StudySheet({
           </p>
         </section>
 
-        {/* プレビュー（保存されるHTMLそのもの） */}
+        {/* プレビュー（保存されるHTMLそのもの）。タップ領域から全画面ビューアを開ける */}
         <div className="ss-preview">
           <div className="ss-preview-bar">
             <span>プレビュー</span>
-            <span className="muted">保存・印刷されるものと同じ内容です</span>
+            <button className="ss-preview-expand" onClick={() => setFull(true)} disabled={empty}>
+              <Icon name="expand" size={15} strokeWidth={2} />
+              全画面
+            </button>
           </div>
           <iframe
             ref={frameRef}
@@ -223,6 +251,40 @@ export default function StudySheet({
           />
         </div>
       </div>
+
+      {/* 全画面ビューア。横画面（回転フレーム）でも画面いっぱいに出すため .rot 直下へポータルする */}
+      {full &&
+        createPortal(
+          <div className="ss-full" role="dialog" aria-modal="true" aria-label="まとめノート（全画面）">
+            <div className="ss-full-bar">
+              <button className="ss-full-icon" onClick={() => setFull(false)} aria-label="閉じる">
+                <Icon name="close" size={22} strokeWidth={2.2} />
+              </button>
+              <div className="ss-full-title">
+                <span className="ss-chip" style={{ background: sheet.color }}>
+                  {sheet.categoryLabel}
+                </span>
+                <span className="ss-full-count">
+                  {scopeLabel} <b>{sheet.items.length}</b>問
+                </span>
+              </div>
+              <button className="ss-full-icon" onClick={download} aria-label="HTMLで保存">
+                <Icon name="import" size={21} />
+              </button>
+              <button className="ss-full-icon" onClick={print} aria-label="印刷・PDF">
+                <Icon name="printer" size={21} />
+              </button>
+            </div>
+            <iframe
+              ref={fullFrameRef}
+              className="ss-full-frame"
+              title="まとめノート（全画面）"
+              srcDoc={html}
+              sandbox="allow-same-origin allow-modals"
+            />
+          </div>,
+          document.querySelector('.rot') ?? document.body,
+        )}
     </>
   )
 }

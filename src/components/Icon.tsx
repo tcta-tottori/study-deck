@@ -31,6 +31,15 @@ export type IconName =
   | 'pause'
   | 'prev'
   | 'next'
+  | 'expand'
+  | 'close'
+  | 'printer'
+  | 'navHome'
+  | 'navVoice'
+  | 'navNote'
+  | 'navStats'
+  | 'navImport'
+  | 'navSettings'
 
 const PATHS: Record<IconName, ReactElement> = {
   home: (
@@ -213,6 +222,74 @@ const PATHS: Record<IconName, ReactElement> = {
     <>
       <path d="M6 5.5 14.5 12 6 18.5z" strokeLinejoin="round" />
       <line x1="18" y1="5.5" x2="18" y2="18.5" />
+    </>
+  ),
+  // 全画面表示（四隅の矢印）
+  expand: (
+    <>
+      <path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9" />
+      <path d="M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9" />
+      <path d="M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15" />
+      <path d="M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15" />
+    </>
+  ),
+  // 閉じる（×）
+  close: <path d="M6 6l12 12M18 6 6 18" />,
+  // プリンター
+  printer: (
+    <>
+      <path d="M7 9V4.5A.5.5 0 0 1 7.5 4h9a.5.5 0 0 1 .5.5V9" />
+      <path d="M7 17H5.5A1.5 1.5 0 0 1 4 15.5v-5A1.5 1.5 0 0 1 5.5 9h13a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H17" />
+      <rect x="7" y="14" width="10" height="6" rx="1" />
+    </>
+  ),
+  // ---- メニュー（ナビ）用デュオトーンアイコン：輪郭＋淡い塗りで面を表現 ----
+  navHome: (
+    <>
+      <path fill="currentColor" fillOpacity={0.18} stroke="none" d="M5.5 9.4 12 3.9l6.5 5.5v9.1a1.5 1.5 0 0 1-1.5 1.5H7a1.5 1.5 0 0 1-1.5-1.5z" />
+      <path d="M3.5 10.8 11.2 4.3a1.2 1.2 0 0 1 1.6 0l7.7 6.5" />
+      <path d="M5.5 9.4v9.1A1.5 1.5 0 0 0 7 20h10a1.5 1.5 0 0 0 1.5-1.5V9.4" />
+      <path d="M10 20v-4a2 2 0 0 1 4 0v4" />
+    </>
+  ),
+  navVoice: (
+    <>
+      <path
+        fill="currentColor" fillOpacity={0.18}
+        d="M4.5 9.3h2.8l4.1-3.4a.7.7 0 0 1 1.1.5v11.2a.7.7 0 0 1-1.1.5l-4.1-3.4H4.5a1 1 0 0 1-1-1v-3.4a1 1 0 0 1 1-1z"
+      />
+      <path d="M16 9.3a3.8 3.8 0 0 1 0 5.4" />
+      <path d="M18.6 6.8a7.4 7.4 0 0 1 0 10.4" />
+    </>
+  ),
+  navNote: (
+    <>
+      <path fill="currentColor" fillOpacity={0.18} d="M6 3.5h9.2L19 7.3v11.2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2z" />
+      <path d="M15 3.6V6.5a1 1 0 0 0 1 1h2.9" />
+      <path d="M8 11h7.5M8 14.5h7.5M8 18h4.5" />
+    </>
+  ),
+  navStats: (
+    <>
+      <rect fill="currentColor" fillOpacity={0.18} x="4" y="12.5" width="4" height="7.5" rx="1.2" />
+      <rect fill="currentColor" fillOpacity={0.18} x="10" y="5" width="4" height="15" rx="1.2" />
+      <rect fill="currentColor" fillOpacity={0.18} x="16" y="9" width="4" height="11" rx="1.2" />
+    </>
+  ),
+  navImport: (
+    <>
+      <path fill="currentColor" fillOpacity={0.18} d="M3.5 14h4.4l1.4 2.5h5.4l1.4-2.5h4.4v4a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" />
+      <path d="M12 3.5v8.5" />
+      <path d="M8.5 8.8 12 12.3l3.5-3.5" />
+    </>
+  ),
+  navSettings: (
+    <>
+      <path
+        fill="currentColor" fillOpacity={0.18}
+        d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+      />
+      <circle cx="12" cy="12" r="3" />
     </>
   ),
 }

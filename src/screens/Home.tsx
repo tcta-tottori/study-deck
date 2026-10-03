@@ -207,7 +207,7 @@ export default function Home({
         <Reveal>
         <button className="voicecard" onClick={() => go('voice')}>
           <span className="vc-ic">
-            <Icon name="speaker" size={20} />
+            <Icon name="navVoice" size={20} />
           </span>
           <span className="vc-body">
             <span className="vc-title">音声で復習</span>
@@ -227,7 +227,7 @@ export default function Home({
         <Reveal>
         <button className="voicecard sheetcard" onClick={() => go('sheet')}>
           <span className="vc-ic">
-            <Icon name="book" size={20} />
+            <Icon name="navNote" size={20} />
           </span>
           <span className="vc-body">
             <span className="vc-title">まとめノート</span>
