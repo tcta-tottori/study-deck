@@ -2495,29 +2495,52 @@ svg.daily-trend {
   transform: none;
   pointer-events: auto;
 }
-/* メニュー項目は左寄せ（アイコン→ラベル） */
+/* メニュー項目は左寄せ（色付きアイコンタイル→ラベル）。--nav-c は項目ごとの色 */
 .nav-sheet-item {
+  --nav-c: var(--primary);
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 12px;
-  padding: 12px 14px;
-  border-radius: 12px;
+  padding: 7px 10px 7px 7px;
+  border-radius: 14px;
   font-size: 15px;
   font-weight: 700;
   color: var(--text);
   text-align: left;
+  transition: background 0.15s ease;
+}
+.nav-sheet-item:active {
+  background: color-mix(in srgb, var(--nav-c) 10%, transparent);
 }
 .nav-sheet-item .ic {
-  display: inline-flex;
-  color: var(--text-dim);
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  color: var(--nav-c);
+  background: color-mix(in srgb, var(--nav-c) 14%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nav-c) 22%, transparent);
+}
+.nav-sheet-item .lb {
+  flex: 1;
 }
 .nav-sheet-item.active {
-  background: var(--primary);
-  color: #fff;
+  background: color-mix(in srgb, var(--nav-c) 13%, var(--surface));
+  color: var(--text);
 }
 .nav-sheet-item.active .ic {
   color: #fff;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--nav-c) 78%, #fff), var(--nav-c));
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--nav-c) 40%, transparent);
+}
+.nav-sheet-item .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--nav-c);
 }
 
 /* --- 本番シミュレーション：モード選択（イントロ） --- */
@@ -3003,7 +3026,7 @@ svg.daily-trend {
 }
 .ss-preview-bar {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
   padding: 10px 14px;
@@ -3062,4 +3085,106 @@ svg.daily-trend {
   background: var(--surface);
   border-radius: 6px;
   padding: 1px 5px;
+}
+
+/* --- まとめノート：全画面ビューア --- */
+.ss-full-btn {
+  width: 100%;
+  margin-bottom: 8px;
+}
+.ss-full-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.ss-preview-expand {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+.ss-preview-expand:disabled {
+  opacity: 0.45;
+}
+.ss-full {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  animation: ssFullIn 0.22s ease;
+}
+/* 横画面（回転フレーム）内ではフレーム全体を覆う */
+.rot-on > .ss-full {
+  position: absolute;
+}
+@keyframes ssFullIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ss-full-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: calc(var(--safe-t) + 8px) 10px 8px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.ss-full-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+.ss-full-title .ss-chip {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ss-full-count {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ss-full-count b {
+  color: var(--primary);
+}
+.ss-full-icon {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+}
+.ss-full-icon:active {
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+}
+.ss-full-frame {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border: none;
+  background: var(--bg);
+  padding-bottom: var(--safe-b);
 }

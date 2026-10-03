@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState, useCallback } from 'react'
+import { useEffect, useLayoutEffect, useState, useCallback, type CSSProperties } from 'react'
 import { useSettings, useQuestions, useRecordsMap, useActivity } from './hooks/useAppData'
 import { updateSettings } from './db/db'
 import Home from './screens/Home'
@@ -25,13 +25,14 @@ export type View =
   | 'voice'
   | 'sheet'
 
-const NAV_ITEMS: { view: View; label: string; icon: IconName }[] = [
-  { view: 'home', label: 'ホーム', icon: 'home' },
-  { view: 'voice', label: '音声復習', icon: 'speaker' },
-  { view: 'sheet', label: 'まとめ', icon: 'book' },
-  { view: 'dashboard', label: '成績', icon: 'chart' },
-  { view: 'import', label: '取込', icon: 'import' },
-  { view: 'settings', label: '設定', icon: 'gear' },
+// メニュー項目。color はアイコンタイルの色（ホームのカード配色と揃える）
+const NAV_ITEMS: { view: View; label: string; icon: IconName; color: string }[] = [
+  { view: 'home', label: 'ホーム', icon: 'navHome', color: '#3b6cf6' },
+  { view: 'voice', label: '音声復習', icon: 'navVoice', color: '#8b5cf6' },
+  { view: 'sheet', label: 'まとめノート', icon: 'navNote', color: '#10b981' },
+  { view: 'dashboard', label: '成績', icon: 'navStats', color: '#f59e0b' },
+  { view: 'import', label: '取込', icon: 'navImport', color: '#0ea5e9' },
+  { view: 'settings', label: '設定', icon: 'navSettings', color: '#64748b' },
 ]
 
 function applyTheme(mode: 'auto' | 'light' | 'dark') {
@@ -301,15 +302,17 @@ export default function App() {
                   key={it.view}
                   role="menuitem"
                   className={`nav-sheet-item${view === it.view ? ' active' : ''}`}
+                  style={{ '--nav-c': it.color } as CSSProperties}
                   onClick={() => {
                     go(it.view)
                     setMenuOpen(false)
                   }}
                 >
                   <span className="ic">
-                    <Icon name={it.icon} size={22} strokeWidth={view === it.view ? 2 : 1.8} />
+                    <Icon name={it.icon} size={21} strokeWidth={1.9} />
                   </span>
-                  <span>{it.label}</span>
+                  <span className="lb">{it.label}</span>
+                  {view === it.view && <span className="dot" aria-hidden="true" />}
                 </button>
               ))}
             </div>
