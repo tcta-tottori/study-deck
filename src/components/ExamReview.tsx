@@ -3,6 +3,7 @@ import { categoryLabel, type ExamResult, type Question } from '../types'
 import { formatDuration } from '../lib/dateutil'
 import { AiAsk } from './AiAsk'
 import { ChoiceReasons } from './ChoiceReasons'
+import { Figure } from './Figure'
 
 const LETTERS = ['ア', 'イ', 'ウ', 'エ']
 
@@ -150,6 +151,7 @@ export function ExamReview({
               )}
             </div>
             <div style={{ fontWeight: 600, marginBottom: 8 }}>{q.stem}</div>
+            <Figure svg={q.figure} />
             {q.choices.map((c, ci) => {
               let cls = 'choice'
               if (ci === q.answerIndex) cls += ' correct'

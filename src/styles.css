@@ -1223,6 +1223,22 @@ button {
   line-height: 1.6;
   margin: 4px 0 14px;
 }
+.q-figure {
+  margin: -4px 0 16px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  overflow-x: auto;
+}
+.q-figure svg {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  margin: 0 auto;
+}
 .choices {
   display: flex;
   flex-direction: column;

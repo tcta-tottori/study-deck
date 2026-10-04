@@ -9,6 +9,7 @@ import type { Category, Question, StudyRecord } from '../types'
 import { CATEGORIES } from '../types'
 import { categoryColor } from './categoryMap'
 import { questionSourceLabel } from './exam'
+import { sanitizeSvg } from './figure'
 
 export type SheetScope = 'weak' | 'all'
 export type SheetCategory = Category | 'all'
@@ -321,6 +322,7 @@ ${q.note ? `      <p><b>自分のメモ</b>${esc(q.note)}</p>` : ''}
       <span class="badges">${badges.join('')}</span>
     </div>
     <p class="stem">${esc(q.stem)}</p>
+${q.figure ? `    <figure class="fig">${sanitizeSvg(q.figure) ?? ''}</figure>` : ''}
 ${choices}
 ${explanation}
 ${others}
@@ -441,6 +443,8 @@ body {
 .badge.warn { color: #fff; background: var(--ng); }
 .badge.cat { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .stem { margin: 6px 0 14px; font-size: 16px; font-weight: 600; }
+.fig { margin: 0 0 14px; padding: 12px; border: 1px solid var(--line); border-radius: 13px; overflow-x: auto; }
+.fig svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; }
 .choices { list-style: none; margin: 0 0 14px; padding: 0; }
 .choice {
   display: flex; align-items: flex-start; gap: 10px;
