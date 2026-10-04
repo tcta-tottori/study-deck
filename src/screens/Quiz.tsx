@@ -12,6 +12,7 @@ import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
 import { AiAsk } from '../components/AiAsk'
 import { ChoiceReasons } from '../components/ChoiceReasons'
+import { Figure } from '../components/Figure'
 
 export interface QuizConfig {
   limit?: number
@@ -242,6 +243,7 @@ export default function Quiz({
             設問が変わるたびに下からのフェードイン（riseIn）を再生する。 */}
         <div key={current.id} className="quiz-qbody">
           <div className="stem">{current.stem}</div>
+          <Figure svg={current.figure} />
           <div className="choices">
             {current.choices.map((c, i) => {
               let cls = 'choice'

@@ -40,6 +40,11 @@ export interface Question {
    */
   choiceReasons?: [string, string, string, string]
   source?: string
+  /**
+   * 図を見て解く問題の図（SVGマークアップ）。表示前に sanitizeSvg で無害化する。
+   * 色は currentColor 基準で描くと、ライト／ダーク両方で読みやすい。
+   */
+  figure?: string
   /** ユーザーが後から手入力/AI生成した補足解説（seedは上書きしない） */
   aiExplanation?: string
   /** 誤答ノート（自由記述メモ） */

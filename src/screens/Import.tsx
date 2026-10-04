@@ -157,7 +157,10 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
           <p className="muted" style={{ fontSize: 13 }}>
             ・answerIndex は 0〜3（1〜4表記も自動補正）<br />
             ・category は7分類（製品企画・設計管理／生産システム・生産計画／品質管理／原価管理／納期管理／安全衛生管理／環境管理）。旧14分類の値も自動変換します<br />
-            ・id 重複や answerIndex 範囲外は自動で弾きます
+            ・id 重複や answerIndex 範囲外は自動で弾きます<br />
+            ・JSONでは figure に図（viewBox付きの SVG）を入れられます。
+            {' { "id": "OFF-…", "figure": "<svg …>" } '}
+            だけの行を取り込むと、取込済みの問題に図だけを追加します
           </p>
           <hr className="sep" />
           <p className="muted" style={{ fontSize: 12 }}>

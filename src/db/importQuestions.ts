@@ -1,6 +1,7 @@
 import { db, applyPendingNotes } from './db'
 import { type Question, type AnswerIndex } from '../types'
 import { normalizeCategory } from '../lib/categoryMap'
+import { looksLikeSvg } from '../lib/figure'
 
 export interface ImportReport {
   ok: boolean
@@ -48,6 +49,11 @@ function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: 
     return { error: `${where} (${id}): choiceReasons は文字列4つの配列が必要` }
   }
 
+  // figure（問題図SVG）は任意
+  const figure = o.figure
+  if (figure !== undefined && figure !== null && figure !== '' && !looksLikeSvg(figure))
+    return { error: `${where} (${id}): figure は viewBox付きの <svg> 文字列が必要` }
+
   seenIds.add(id)
   return {
     q: {
@@ -61,6 +67,7 @@ function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: 
       explanation: typeof o.explanation === 'string' ? o.explanation : '',
       choiceReasons,
       source: typeof o.source === 'string' ? o.source : undefined,
+      figure: looksLikeSvg(figure) ? figure : undefined,
     },
   }
 }
@@ -138,10 +145,35 @@ export async function importFromCsv(text: string): Promise<ImportReport> {
   return { ...rep, errors: [...errors, ...rep.errors], ok: rep.ok && errors.length === 0 }
 }
 
+/** { id, figure } だけのオブジェクト＝既存問題へ図を追加する「図パッチ」 */
+function isFigurePatch(item: unknown): item is { id: string; figure: string } {
+  if (typeof item !== 'object' || item === null) return false
+  const o = item as Record<string, unknown>
+  return typeof o.id === 'string' && o.stem === undefined && looksLikeSvg(o.figure)
+}
+
 async function commit(arr: unknown[]): Promise<ImportReport> {
   const errors: string[] = []
   const valid: Question[] = []
   const seen = new Set<string>()
+
+  // 図パッチは問題本文を持たないので、既存問題の figure だけを更新する
+  const patches = arr.filter(isFigurePatch)
+  arr = arr.filter((x) => !isFigurePatch(x))
+  let patched = 0
+  if (patches.length) {
+    await db.transaction('rw', db.questions, async () => {
+      for (const p of patches) {
+        const cur = await db.questions.get(p.id)
+        if (!cur) {
+          errors.push(`${p.id}: 図を入れる問題が未取込です（先に問題を取り込んでください）`)
+          continue
+        }
+        await db.questions.put({ ...cur, figure: p.figure })
+        patched++
+      }
+    })
+  }
 
   arr.forEach((item, i) => {
     const { q, error } = validateQuestion(item, i, seen)
@@ -156,7 +188,12 @@ async function commit(arr: unknown[]): Promise<ImportReport> {
       for (const q of valid) {
         const exists = await db.questions.get(q.id)
         if (exists) {
-          await db.questions.put({ ...q, note: exists.note, aiExplanation: exists.aiExplanation })
+          await db.questions.put({
+            ...q,
+            note: exists.note,
+            aiExplanation: exists.aiExplanation,
+            figure: q.figure ?? exists.figure,
+          })
           updated++
         } else {
           await db.questions.put(q)
@@ -169,7 +206,14 @@ async function commit(arr: unknown[]): Promise<ImportReport> {
   // 問題より先にバックアップを復元していた場合の保留メモを、ここで自動的に反映する
   const notesRestored = valid.length > 0 ? await applyPendingNotes() : 0
 
-  return { ok: errors.length === 0, added, updated, total: valid.length, notesRestored, errors }
+  return {
+    ok: errors.length === 0,
+    added,
+    updated: updated + patched,
+    total: valid.length + patched,
+    notesRestored,
+    errors,
+  }
 }
 
 /** RFC4180風の簡易CSVパーサ（ダブルクォート・改行・カンマ対応） */

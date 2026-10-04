@@ -13,6 +13,7 @@ import { formatClock, formatDuration } from '../lib/dateutil'
 import { Icon } from '../components/Icon'
 import { ExamReview } from '../components/ExamReview'
 import { listSessions, questionsForSession, pickBalanced, type ExamSession } from '../lib/exam'
+import { Figure } from '../components/Figure'
 
 const LETTERS = ['ア', 'イ', 'ウ', 'エ']
 const EXAM_N = 40
@@ -348,6 +349,7 @@ export default function Exam({
             {over && <span className="exam-over">計画時間を超過中</span>}
           </div>
           <div key={q.id} className="stem">{q.stem}</div>
+          <Figure key={`f-${q.id}`} svg={q.figure} />
         </div>
         <div key={q.id} className="choices">
           {q.choices.map((c, i) => (
