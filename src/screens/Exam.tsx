@@ -295,7 +295,7 @@ export default function Exam({
           >
             <span className="exam-card-main">
               <span className="exam-card-title">全分野バランス {randomN}問</span>
-              <span className="exam-card-sub">7分野の出題比率を調整してランダム出題</span>
+              <span className="exam-card-sub">{getSubject(subjectId).categories.length}分野の出題比率を調整してランダム出題</span>
             </span>
             <Icon name="arrow" size={18} />
           </button>
