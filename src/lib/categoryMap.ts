@@ -1,4 +1,5 @@
 import { CATEGORIES, type Category } from '../types'
+import { DEFAULT_SUBJECT_ID, categoryColorOf, getSubject } from './subjects'
 
 /**
  * 旧14分類 → 新7分類（JAVADA プランニング試験範囲）への対応。
@@ -23,24 +24,21 @@ const OLD_TO_NEW: Record<string, Category> = {
 
 const NEW_SET = new Set<string>(CATEGORIES)
 
-/** カテゴリごとの識別カラー（ホーム・勉強中で共通）。白基調で読める彩度に調整。 */
-export const CATEGORY_COLORS: Record<Category, string> = {
-  '製品企画・設計管理': '#7c5ce0', // 紫
-  '生産システム・生産計画': '#2f6fe0', // 青
-  '品質管理': '#159f8a', // ティール
-  '原価管理': '#d9982f', // アンバー
-  '納期管理': '#e0554e', // 赤
-  '安全衛生管理': '#e07b2f', // オレンジ
-  '環境管理': '#3aa564', // 緑
-}
-
+/** カテゴリごとの識別カラー（ホーム・勉強中で共通）。科目ごとの定義は lib/subjects.ts。 */
 export function categoryColor(c: Category): string {
-  return CATEGORY_COLORS[c] ?? '#2f6fe0'
+  return categoryColorOf(c)
 }
 
-/** 与えられたカテゴリ文字列を新7分類へ正規化。対応がなければ null。 */
-export function normalizeCategory(value: string): Category | null {
-  if (NEW_SET.has(value)) return value as Category
-  if (value in OLD_TO_NEW) return OLD_TO_NEW[value]
+/**
+ * 与えられたカテゴリ文字列を、指定科目の分類へ正規化。対応がなければ null。
+ * 生産管理プランニング3級では旧14分類も新7分類へ自動変換する。
+ */
+export function normalizeCategory(value: string, subjectId?: string): Category | null {
+  const subject = getSubject(subjectId)
+  if (subject.categories.includes(value)) return value
+  if (subject.id === DEFAULT_SUBJECT_ID) {
+    if (NEW_SET.has(value)) return value
+    if (value in OLD_TO_NEW) return OLD_TO_NEW[value]
+  }
   return null
 }

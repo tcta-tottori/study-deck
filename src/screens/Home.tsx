@@ -124,7 +124,9 @@ export default function Home({
                 </button>
               )
             })}
-            <p className="muted subject-note">他の科目は今後追加予定です。</p>
+            <p className="muted subject-note">
+              問題・学習記録・模試結果は科目ごとに分かれます。問題は「取込」から科目別に追加できます。
+            </p>
           </div>
         </div>
       )}
@@ -132,6 +134,14 @@ export default function Home({
       <div className="screen">
         <div className="home-grid">
         <div className="home-main">
+        {questions.length === 0 && (
+          <button className="card" style={{ width: '100%', textAlign: 'left', cursor: 'pointer' }} onClick={() => go('import')}>
+            <h2 style={{ marginBottom: 6 }}>{subject.name}の問題がまだありません</h2>
+            <p className="muted" style={{ fontSize: 14 }}>
+              「取込」から過去問のJSON／CSVを読み込むと学習を始められます（タップで取込へ）。
+            </p>
+          </button>
+        )}
         {/* 試験までのカウントダウン（タップで設定へ） */}
         <button className="countdown" onClick={() => go('settings')}>
           <span className="cd-ic">

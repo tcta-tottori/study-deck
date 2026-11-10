@@ -1,7 +1,8 @@
-import { db, applyPendingNotes } from './db'
+import { db, applyPendingNotes, getSettings } from './db'
 import { type Question, type AnswerIndex } from '../types'
 import { normalizeCategory } from '../lib/categoryMap'
 import { looksLikeSvg } from '../lib/figure'
+import { SUBJECTS, getSubject, isSubjectId, subjectIdOf } from '../lib/subjects'
 
 export interface ImportReport {
   ok: boolean
@@ -11,9 +12,32 @@ export interface ImportReport {
   total: number
   /** バックアップ復元で保留になっていたメモのうち、この取込で反映できた件数 */
   notesRestored: number
+  /** 科目IDごとの有効件数（取り込んだ問題がどの科目に入ったか） */
+  bySubject?: Record<string, number>
 }
 
-function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: Question; error?: string } {
+/** 複数ファイルの取込結果を1つにまとめる */
+export function mergeReports(reps: ImportReport[]): ImportReport {
+  const bySubject: Record<string, number> = {}
+  for (const r of reps)
+    for (const [k, v] of Object.entries(r.bySubject ?? {})) bySubject[k] = (bySubject[k] ?? 0) + v
+  return {
+    ok: reps.every((r) => r.ok),
+    added: reps.reduce((n, r) => n + r.added, 0),
+    updated: reps.reduce((n, r) => n + r.updated, 0),
+    total: reps.reduce((n, r) => n + r.total, 0),
+    notesRestored: reps.reduce((n, r) => n + r.notesRestored, 0),
+    errors: reps.flatMap((r) => r.errors),
+    bySubject,
+  }
+}
+
+function validateQuestion(
+  q: unknown,
+  idx: number,
+  seenIds: Set<string>,
+  currentSubjectId: string,
+): { q?: Question; error?: string } {
   const where = `#${idx + 1}`
   if (typeof q !== 'object' || q === null) return { error: `${where}: オブジェクトではありません` }
   const o = q as Record<string, unknown>
@@ -22,10 +46,26 @@ function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: 
   if (typeof id !== 'string' || id.trim() === '') return { error: `${where}: id が不正` }
   if (seenIds.has(id)) return { error: `${where}: id が重複 (${id})` }
 
-  // 新7分類 or 旧14分類（自動変換）を受け付ける
-  const category = typeof o.category === 'string' ? normalizeCategory(o.category) : null
+  // 科目: subjectId 指定があればそれ。無ければ「いまの科目」→他の科目の順に、分類が合う科目へ入れる
+  // （生産管理プランニング3級は新7分類 or 旧14分類（自動変換）を受け付ける）
+  if (o.subjectId !== undefined && o.subjectId !== '' && !isSubjectId(o.subjectId))
+    return { error: `${where} (${id}): subjectId が不明 (${String(o.subjectId)})` }
+  const candidates = isSubjectId(o.subjectId)
+    ? [o.subjectId]
+    : [currentSubjectId, ...SUBJECTS.map((s) => s.id).filter((s) => s !== currentSubjectId)]
+  let category: string | null = null
+  let subjectId = candidates[0]
+  for (const sid of candidates) {
+    category = typeof o.category === 'string' ? normalizeCategory(o.category, sid) : null
+    if (category) {
+      subjectId = sid
+      break
+    }
+  }
   if (!category)
-    return { error: `${where} (${id}): category が不正 (${String(o.category)})` }
+    return {
+      error: `${where} (${id}): category が不正 (${String(o.category)})。${getSubject(candidates[0]).name}の分類は「${getSubject(candidates[0]).categories.join('／')}」`,
+    }
 
   const stem = o.stem
   if (typeof stem !== 'string' || stem.trim() === '') return { error: `${where} (${id}): stem が空` }
@@ -59,6 +99,7 @@ function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: 
     q: {
       id,
       origin,
+      subjectId,
       category,
       subcategory: typeof o.subcategory === 'string' ? o.subcategory : undefined,
       stem,
@@ -78,9 +119,11 @@ function validateQuestion(q: unknown, idx: number, seenIds: Set<string>): { q?: 
  * 同じIDで再取込すれば学習履歴はそのまま復活する。
  * 返り値は削除した問題数。
  */
-export async function resetOfficialQuestions(): Promise<number> {
-  const ids = await db.questions.where('origin').equals('official').primaryKeys()
-  if (ids.length) await db.questions.bulkDelete(ids as string[])
+export async function resetOfficialQuestions(subjectId?: string): Promise<number> {
+  const all = await db.questions.where('origin').equals('official').toArray()
+  // 科目指定時はその科目の問題だけ（未指定なら全科目）
+  const ids = all.filter((q) => !subjectId || subjectIdOf(q) === getSubject(subjectId).id).map((q) => q.id)
+  if (ids.length) await db.questions.bulkDelete(ids)
   return ids.length
 }
 
@@ -175,8 +218,9 @@ async function commit(arr: unknown[]): Promise<ImportReport> {
     })
   }
 
+  const currentSubjectId = getSubject((await getSettings()).subjectId).id
   arr.forEach((item, i) => {
-    const { q, error } = validateQuestion(item, i, seen)
+    const { q, error } = validateQuestion(item, i, seen, currentSubjectId)
     if (error) errors.push(error)
     else if (q) valid.push(q)
   })
@@ -213,6 +257,11 @@ async function commit(arr: unknown[]): Promise<ImportReport> {
     total: valid.length + patched,
     notesRestored,
     errors,
+    bySubject: valid.reduce<Record<string, number>>((m, q) => {
+      const k = subjectIdOf(q)
+      m[k] = (m[k] ?? 0) + 1
+      return m
+    }, {}),
   }
 }
 

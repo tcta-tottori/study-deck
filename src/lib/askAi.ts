@@ -1,4 +1,5 @@
 import type { Question } from '../types'
+import { getSubject, subjectIdOf } from './subjects'
 
 const LETTERS = ['ア', 'イ', 'ウ', 'エ']
 
@@ -29,7 +30,7 @@ export function buildAiPrompt(q: Question, selectedIndex?: number | null): strin
     ? `\n・特に、私が選んだ「${LETTERS[picked]}」がなぜ誤りなのかを重点的に説明`
     : ''
 
-  return `あなたは「生産管理プランニング3級（ビジネス・キャリア検定）」の講師です。次の問題について、初学者にもわかるように日本語で詳しく解説してください。
+  return `あなたは「${getSubject(subjectIdOf(q)).name}（ビジネス・キャリア検定）」の講師です。次の問題について、初学者にもわかるように日本語で詳しく解説してください。
 ・正解が正しい理由を根拠とともに説明
 ・ほかの選択肢がなぜ誤りなのかを一つずつ説明${wrongLine}
 ・関連する重要用語や覚えておくべきポイントを補足

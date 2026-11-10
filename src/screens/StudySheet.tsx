@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { QuizConfig } from './Quiz'
 import type { Category, Question, StudyRecord } from '../types'
-import { CATEGORIES } from '../types'
+import { categoriesFor } from '../lib/subjects'
 import { categoryColor } from '../lib/categoryMap'
 import {
   buildStudySheet,
@@ -63,7 +63,7 @@ export default function StudySheet({
       { total: number; weak: number; correct: number; wrong: number }
     >()
     base.set('all', { total: 0, weak: 0, correct: 0, wrong: 0 })
-    for (const c of CATEGORIES) base.set(c, { total: 0, weak: 0, correct: 0, wrong: 0 })
+    for (const c of categoriesFor(questions)) base.set(c, { total: 0, weak: 0, correct: 0, wrong: 0 })
     for (const q of questions) {
       const r = records.get(q.id)
       for (const key of ['all', q.category] as SheetCategory[]) {
@@ -126,7 +126,7 @@ export default function StudySheet({
         <div className="card ss-picker">
           <h2>項目を選ぶ</h2>
           <div className="ss-cats">
-            {(['all', ...CATEGORIES] as SheetCategory[]).map((c) => {
+            {(['all', ...categoriesFor(questions)] as SheetCategory[]).map((c) => {
               const s = catSummary.get(c)
               if (!s || s.total === 0) return null
               const col = c === 'all' ? 'var(--primary)' : categoryColor(c as Category)

@@ -5,6 +5,7 @@ import {
   getExamProgress,
   saveExamProgress,
   clearExamProgress,
+  loadSubjectQuestions,
 } from '../db/db'
 import { recordAnswer } from '../lib/study'
 import { type ExamProgress, type ExamResult, type Question } from '../types'
@@ -14,6 +15,7 @@ import { Icon } from '../components/Icon'
 import { ExamReview } from '../components/ExamReview'
 import { listSessions, questionsForSession, pickBalanced, type ExamSession } from '../lib/exam'
 import { Figure } from '../components/Figure'
+import { getSubject, subjectIdOf } from '../lib/subjects'
 
 const LETTERS = ['ア', 'イ', 'ウ', 'エ']
 const EXAM_N = 40
@@ -41,6 +43,7 @@ export default function Exam({
   const [allQuestions, setAllQuestions] = useState<Question[]>([])
   const [sessions, setSessions] = useState<ExamSession[]>([])
   const [resume, setResume] = useState<ExamProgress | undefined>(undefined)
+  const [subjectId, setSubjectId] = useState<string | undefined>(undefined)
   const available = allQuestions.length
 
   // 経過時間は「これまでの累計（accumulated）＋現セグメント開始からの実時間」で算出。
@@ -49,12 +52,12 @@ export default function Exam({
   const segStartRef = useRef(0)
   const submittedRef = useRef(false)
   // 中断保存で最新の state を参照するためのミラー
-  const stateRef = useRef({ questions, answers, cur, label, durationSec })
+  const stateRef = useRef({ questions, answers, cur, label, durationSec, subjectId })
   const phaseRef = useRef<Phase>('intro')
 
   useEffect(() => {
-    stateRef.current = { questions, answers, cur, label, durationSec }
-  }, [questions, answers, cur, label, durationSec])
+    stateRef.current = { questions, answers, cur, label, durationSec, subjectId }
+  }, [questions, answers, cur, label, durationSec, subjectId])
   useEffect(() => {
     phaseRef.current = phase
   }, [phase])
@@ -68,11 +71,13 @@ export default function Exam({
     getSettings().then((s) => {
       setDurationSec(s.examDurationSec)
     })
-    db.questions.toArray().then((all) => {
+    // いま選んでいる科目の問題だけで出題する。中断中の試験も同じ科目のものだけ再開対象にする。
+    Promise.all([getSettings(), loadSubjectQuestions(), getExamProgress()]).then(([s, all, p]) => {
+      setSubjectId(getSubject(s.subjectId).id)
       setAllQuestions(all)
       setSessions(listSessions(all))
+      setResume(p && subjectIdOf(p) === getSubject(s.subjectId).id ? p : undefined)
     })
-    getExamProgress().then((p) => setResume(p))
   }, [])
 
   // 中断保存（最新 state をミラーから読む）
@@ -87,6 +92,7 @@ export default function Exam({
       elapsedSec: computeElapsed(),
       durationSec: st.durationSec,
       savedAt: Date.now(),
+      subjectId: st.subjectId,
     }
     await saveExamProgress(progress)
   }, [computeElapsed])
@@ -222,6 +228,7 @@ export default function Exam({
       questionIds: questions.map((q) => q.id),
       answers: answers.slice(),
       label,
+      subjectId,
     }
     const id = await db.examResults.add(res)
     await clearExamProgress() // 採点済みなので中断状態は破棄

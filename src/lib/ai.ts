@@ -1,4 +1,5 @@
 import type { Question } from '../types'
+import { getSubject, subjectIdOf } from './subjects'
 
 /**
  * Anthropic API で解説を生成する。
@@ -9,7 +10,7 @@ import type { Question } from '../types'
  */
 export async function generateExplanation(q: Question, apiKey: string): Promise<string> {
   const choices = q.choices.map((c, i) => `${'アイウエ'[i]}. ${c}`).join('\n')
-  const prompt = `あなたは生産管理の講師です。次の4択問題について、日本語で簡潔（200字程度）に解説してください。なぜ正解が正しく、主要な誤答がなぜ誤りかに触れてください。
+  const prompt = `あなたは「${getSubject(subjectIdOf(q)).name}（ビジネス・キャリア検定）」の講師です。次の4択問題について、日本語で簡潔（200字程度）に解説してください。なぜ正解が正しく、主要な誤答がなぜ誤りかに触れてください。
 
 問題: ${q.stem}
 ${choices}

@@ -1,13 +1,7 @@
-// JAVADA「生産管理プランニング」試験範囲の7分類
-export type Category =
-  | '製品企画・設計管理'
-  | '生産システム・生産計画'
-  | '品質管理'
-  | '原価管理'
-  | '納期管理'
-  | '安全衛生管理'
-  | '環境管理'
+// 分類（出題範囲）。科目ごとの分類一覧は lib/subjects.ts の Subject.categories を参照。
+export type Category = string
 
+/** 生産管理プランニング3級の7分類（旧データの正規化用。科目別の一覧は lib/subjects.ts） */
 export const CATEGORIES: Category[] = [
   '製品企画・設計管理',
   '生産システム・生産計画',
@@ -28,6 +22,8 @@ export type AnswerIndex = 0 | 1 | 2 | 3
 export interface Question {
   id: string // "OFF-R06A-0001" / "ORIG-0001" など
   origin: 'official' | 'original'
+  /** 科目ID（lib/subjects.ts）。未設定は生産管理プランニング3級 */
+  subjectId?: string
   category: Category
   subcategory?: string
   stem: string
@@ -81,6 +77,8 @@ export interface ExamResult {
   answers: number[]
   /** 出題ラベル（例「全分野バランス 40問」「令和7年度 後期」） */
   label?: string
+  /** 科目ID（未設定は生産管理プランニング3級） */
+  subjectId?: string
 }
 
 /**
@@ -96,6 +94,8 @@ export interface ExamProgress {
   elapsedSec: number // 中断時点までの経過秒
   durationSec: number // 計画（制限）時間
   savedAt: number
+  /** 科目ID（未設定は生産管理プランニング3級） */
+  subjectId?: string
 }
 
 /**

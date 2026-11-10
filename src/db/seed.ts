@@ -49,7 +49,7 @@ export async function migrateCategories(): Promise<void> {
   const all = await db.questions.toArray()
   const updates = all
     .map((q) => {
-      const norm = normalizeCategory(q.category as string)
+      const norm = normalizeCategory(q.category as string, q.subjectId)
       return norm && norm !== q.category ? { ...q, category: norm } : null
     })
     .filter((q): q is Question => q !== null)

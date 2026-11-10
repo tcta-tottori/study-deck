@@ -3,10 +3,13 @@ import {
   CSV_TEMPLATE,
   importFromCsv,
   importFromJson,
+  mergeReports,
   resetOfficialQuestions,
   type ImportReport,
 } from '../db/importQuestions'
-import { useQuestions } from '../hooks/useAppData'
+import { useQuestions, useSettings } from '../hooks/useAppData'
+import { updateSettings } from '../db/db'
+import { getSubject } from '../lib/subjects'
 import { listSessions } from '../lib/exam'
 import { useToast } from '../components/Toast'
 import { Icon } from '../components/Icon'
@@ -16,19 +19,25 @@ import BackupPanel from '../components/BackupPanel'
 export default function ImportScreen({ onHome }: { onHome: () => void }) {
   const toast = useToast()
   const questions = useQuestions()
+  const settings = useSettings()
+  const subject = getSubject(settings.subjectId)
   const [report, setReport] = useState<ImportReport | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const officialCount = (questions ?? []).filter((q) => q.origin === 'official').length
   const sessionCount = listSessions(questions ?? []).length
 
+  // 複数ファイルをまとめて選べる（例: 営業3級の5回分を一度に）
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const text = await file.text()
-    const rep = file.name.toLowerCase().endsWith('.csv')
-      ? await importFromCsv(text)
-      : await importFromJson(text)
+    const files = Array.from(e.target.files ?? [])
+    if (files.length === 0) return
+    const reps: ImportReport[] = []
+    for (const file of files) {
+      const text = await file.text()
+      const r = file.name.toLowerCase().endsWith('.csv') ? await importFromCsv(text) : await importFromJson(text)
+      reps.push(files.length > 1 ? { ...r, errors: r.errors.map((m) => `${file.name} ${m}`) } : r)
+    }
+    const rep = mergeReports(reps)
     setReport(rep)
     if (rep.added + rep.updated > 0) toast(`${rep.added}件追加・${rep.updated}件更新`)
     if (fileRef.current) fileRef.current.value = ''
@@ -41,11 +50,11 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
     }
     if (
       !confirm(
-        `取込済みの公式問題 ${officialCount}問 をすべて削除します。\n学習履歴（SRS・連続日数・模試結果）は削除されません。同じデータを取り込み直せば履歴もそのまま復活します。\n\n削除してよろしいですか？`,
+        `${subject.name}の取込済み問題 ${officialCount}問 をすべて削除します（他の科目の問題は残ります）。\n学習履歴（SRS・連続日数・模試結果）は削除されません。同じデータを取り込み直せば履歴もそのまま復活します。\n\n削除してよろしいですか？`,
       )
     )
       return
-    const n = await resetOfficialQuestions()
+    const n = await resetOfficialQuestions(subject.id)
     setReport(null)
     toast(`公式問題 ${n}問 を削除しました`)
   }
@@ -70,7 +79,7 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
         <div className="statrow">
           <div className="stat">
             <div className="num">{officialCount}</div>
-            <div className="lbl">取込問題数</div>
+            <div className="lbl">取込問題数（{subject.short ?? subject.name}）</div>
           </div>
           <div className="stat">
             <div className="num">{sessionCount}</div>
@@ -81,13 +90,15 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
         <div className="card">
           <h2>公式過去問の取り込み</h2>
           <p className="muted" style={{ marginBottom: 12 }}>
-            CSV または JSON を選択してください。データは端末内（IndexedDB）にのみ保存され、
-            外部送信されません。
+            CSV または JSON を選択してください（複数ファイルをまとめて選べます）。データは端末内（IndexedDB）にのみ保存され、
+            外部送信されません。JSON に subjectId（例: eigyo-3／marketing-3）があればその科目へ、無ければ
+            いま選んでいる科目（{subject.name}）へ入ります。
           </p>
           <input
             ref={fileRef}
             type="file"
             accept=".csv,.json,application/json,text/csv"
+            multiple
             onChange={onFile}
             style={{ display: 'none' }}
           />
@@ -122,6 +133,34 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
               追加 <strong>{report.added}</strong> 件／更新 <strong>{report.updated}</strong> 件／
               有効 {report.total} 件
             </p>
+            {report.bySubject && Object.keys(report.bySubject).length > 0 && (
+              <div style={{ margin: '8px 0' }}>
+                {Object.entries(report.bySubject).map(([sid, n]) => {
+                  const s = getSubject(sid)
+                  const here = s.id === subject.id
+                  return (
+                    <div key={sid} style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0', flexWrap: 'wrap' }}>
+                      <span>
+                        {s.name}：<strong>{n}</strong> 問
+                      </span>
+                      {here ? (
+                        <span className="muted" style={{ fontSize: 12 }}>（学習中の科目）</span>
+                      ) : (
+                        <button
+                          className="btn ghost sm"
+                          onClick={() => {
+                            void updateSettings({ subjectId: s.id })
+                            toast(`科目を「${s.name}」に切り替えました`)
+                          }}
+                        >
+                          この科目で学習する
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
             {report.notesRestored > 0 && (
               <p style={{ color: 'var(--correct)' }}>
                 バックアップから復元待ちだったメモ {report.notesRestored} 件を、この取込で反映しました。
@@ -156,7 +195,9 @@ export default function ImportScreen({ onHome }: { onHome: () => void }) {
           </p>
           <p className="muted" style={{ fontSize: 13 }}>
             ・answerIndex は 0〜3（1〜4表記も自動補正）<br />
-            ・category は7分類（製品企画・設計管理／生産システム・生産計画／品質管理／原価管理／納期管理／安全衛生管理／環境管理）。旧14分類の値も自動変換します<br />
+            ・category は{subject.name}の分類（{subject.categories.join('／')}）
+            {subject.id === 'seisan-kanri-planning-3' ? '。旧14分類の値も自動変換します' : ''}
+            <br />
             ・id 重複や answerIndex 範囲外は自動で弾きます<br />
             ・JSONでは figure に図（viewBox付きの SVG）を入れられます。
             {' { "id": "OFF-…", "figure": "<svg …>" } '}

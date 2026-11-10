@@ -3,7 +3,7 @@ import { db } from '../db/db'
 import { buildQueue } from '../srs/srs'
 import { recordAnswer, saveNote, saveAiExplanation } from '../lib/study'
 import { generateExplanation } from '../lib/ai'
-import { getSettings } from '../db/db'
+import { getSettings, loadSubjectQuestions } from '../db/db'
 import { categoryLabel, type Question } from '../types'
 import { categoryColor } from '../lib/categoryMap'
 import { questionSourceLabel } from '../lib/exam'
@@ -62,7 +62,7 @@ export default function Quiz({
     let alive = true
     ;(async () => {
       const [questions, recs] = await Promise.all([
-        db.questions.toArray(),
+        loadSubjectQuestions(),
         db.studyRecords.toArray(),
       ])
       const map = new Map(recs.map((r) => [r.questionId, r]))

@@ -1,6 +1,6 @@
 import Dexie, { type Table } from 'dexie'
 import type { Question, StudyRecord, ExamResult, ExamProgress, AppSettings, WrongLog } from '../types'
-import { DEFAULT_SUBJECT_ID } from '../lib/subjects'
+import { DEFAULT_SUBJECT_ID, filterBySubject } from '../lib/subjects'
 import { dayKey } from '../lib/dateutil'
 
 /** 問題より先に復元されたメモ／AI解説（取込時に自動適用される） */
@@ -84,6 +84,12 @@ export async function getSettings(): Promise<AppSettings> {
 export async function updateSettings(patch: Partial<AppSettings>): Promise<void> {
   const cur = await getSettings()
   await db.settings.put({ ...cur, ...patch, key: 'app' })
+}
+
+/** いま選んでいる科目の問題だけを読み込む */
+export async function loadSubjectQuestions(): Promise<Question[]> {
+  const [s, all] = await Promise.all([getSettings(), db.questions.toArray()])
+  return filterBySubject(all, s.subjectId)
 }
 
 // --- 中断中の本番シミュレーション（続きから再開）---

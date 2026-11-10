@@ -1,4 +1,5 @@
-import { CATEGORIES, type Category, type Question, type StudyRecord } from '../types'
+import { type Category, type Question, type StudyRecord } from '../types'
+import { getSubject, subjectIdOf } from './subjects'
 
 export interface CategoryStat {
   category: Category
@@ -13,13 +14,19 @@ export function categoryStats(
   questions: Question[],
   records: Map<string, StudyRecord>,
 ): CategoryStat[] {
+  // 分類の並びは科目の定義順（問題が属する科目から判断）。定義外の分類は末尾に付け足す。
+  const order = questions.length ? [...getSubject(subjectIdOf(questions[0])).categories] : []
   const byCat = new Map<Category, CategoryStat>()
-  for (const c of CATEGORIES) {
+  for (const c of order) {
     byCat.set(c, { category: c, total: 0, answered: 0, correct: 0, wrong: 0, accuracy: 0 })
   }
   for (const q of questions) {
-    const s = byCat.get(q.category)
-    if (!s) continue
+    let s = byCat.get(q.category)
+    if (!s) {
+      s = { category: q.category, total: 0, answered: 0, correct: 0, wrong: 0, accuracy: 0 }
+      byCat.set(q.category, s)
+      order.push(q.category)
+    }
     s.total++
     const r = records.get(q.id)
     if (r && r.lastAnswered > 0) {
@@ -32,7 +39,7 @@ export function categoryStats(
     const denom = s.correct + s.wrong
     s.accuracy = denom > 0 ? s.correct / denom : 0
   }
-  return CATEGORIES.map((c) => byCat.get(c)!).filter((s) => s.total > 0)
+  return order.map((c) => byCat.get(c)!).filter((s) => s.total > 0)
 }
 
 export function boxDistribution(

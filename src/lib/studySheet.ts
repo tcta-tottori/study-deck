@@ -6,7 +6,7 @@
  * 生成したHTMLはアプリ内プレビュー（iframe）・ファイル保存・印刷の3つで同じものを使う。
  */
 import type { Category, Question, StudyRecord } from '../types'
-import { CATEGORIES } from '../types'
+import { categoriesFor, getSubject, subjectIdOf } from './subjects'
 import { categoryColor } from './categoryMap'
 import { questionSourceLabel } from './exam'
 import { sanitizeSvg } from './figure'
@@ -96,6 +96,7 @@ export function buildStudySheet(
   const denom = stats.correct + stats.wrong
   stats.accuracy = denom > 0 ? stats.correct / denom : 0
 
+  const order = categoriesFor(questions)
   const items =
     opts.scope === 'weak'
       ? all
@@ -110,7 +111,7 @@ export function buildStudySheet(
       : // 全問題はカテゴリ→ID順（過去問の出題順に近い並び）
         all.sort(
           (a, b) =>
-            CATEGORIES.indexOf(a.q.category) - CATEGORIES.indexOf(b.q.category) ||
+            order.indexOf(a.q.category) - order.indexOf(b.q.category) ||
             a.q.id.localeCompare(b.q.id),
         )
 
@@ -140,13 +141,24 @@ const CATEGORY_SLUG: Record<Category, string> = {
   '環境管理': 'environment',
 }
 
+/** 科目の分類 → c1〜c8（ファイル名用。上の対応表に無い分類） */
+function categorySlug(c: Category, subjectId: string | undefined): string {
+  if (CATEGORY_SLUG[c]) return CATEGORY_SLUG[c]
+  const i = getSubject(subjectId).categories.indexOf(c)
+  return i >= 0 ? `c${i + 1}` : 'category'
+}
+
+/** 科目のASCIIスラッグ（ファイル名用） */
+const SUBJECT_SLUG: Record<string, string> = { 'eigyo-3': 'eigyo3-', 'marketing-3': 'marketing3-' }
+
 /** ファイル名（studydrill-note-quality-weak-20260926.html） */
 export function sheetFilename(sheet: StudySheet, now = new Date(sheet.generatedAt)): string {
   const p = (n: number) => String(n).padStart(2, '0')
   const date = `${now.getFullYear()}${p(now.getMonth() + 1)}${p(now.getDate())}`
   const scope = sheet.scope === 'weak' ? 'weak' : 'all'
-  const cat = sheet.category === 'all' ? 'all' : (CATEGORY_SLUG[sheet.category] ?? 'category')
-  return `studydrill-note-${cat}-${scope}-${date}.html`
+  const sid = sheet.items[0] ? subjectIdOf(sheet.items[0].q) : undefined
+  const cat = sheet.category === 'all' ? 'all' : categorySlug(sheet.category, sid)
+  return `studydrill-note-${SUBJECT_SLUG[sid ?? ''] ?? ''}${cat}-${scope}-${date}.html`
 }
 
 function esc(s: string): string {
@@ -180,6 +192,7 @@ export function renderSheetHtml(
   const includeChoices = opts.includeChoices !== false
   const includeNotes = opts.includeNotes !== false
   const scopeLabel = sheet.scope === 'weak' ? '間違いが多い問題' : 'この項目の全問題'
+  const subjectName = getSubject(sheet.items[0] ? subjectIdOf(sheet.items[0].q) : undefined).name
   const title = `${sheet.categoryLabel}｜${scopeLabel} — StudyDrill まとめノート`
 
   const toc = sheet.items
@@ -240,7 +253,7 @@ ${body}
     : ''
 }
   <footer>
-    StudyDrill — 生産管理プランニング3級 学習アプリ ／ 端末内のデータから作成（外部送信なし）。
+    StudyDrill — ${esc(subjectName)} 学習アプリ ／ 端末内のデータから作成（外部送信なし）。
     問題の著作権は出題元に帰属します。個人学習の範囲でご利用ください。
   </footer>
 </div>

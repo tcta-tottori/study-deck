@@ -8,6 +8,7 @@ import { shuffle } from '../srs/srs'
  *
  * 公式問題のIDは OFF-R{YY}{E|L}-{NNNN}（E=前期 / L=後期）で年度・回を表す。
  * 例: OFF-R07L-0001 → 令和7年度 後期。ここから受験可能な回を自動抽出する。
+ * 科目コード付き（OFF-SLS-R06E-01 = 営業3級 令和6年度 前期）にも対応。
  */
 
 export interface ExamSession {
@@ -22,7 +23,7 @@ export interface ExamSession {
 export function parseSessionKey(
   id: string,
 ): { key: string; year: number; term: 'early' | 'late' } | null {
-  const m = /^OFF-R(\d{1,2})(E|L)/i.exec(id)
+  const m = /^OFF-(?:[A-Z]+-)?R(\d{1,2})(E|L)/i.exec(id)
   if (!m) return null
   const term = m[2].toUpperCase() === 'E' ? 'early' : 'late'
   return { key: `R${m[1].padStart(2, '0')}${term === 'early' ? 'E' : 'L'}`, year: Number(m[1]), term }
@@ -37,7 +38,7 @@ export function sessionLabel(year: number, term: 'early' | 'late'): string {
  * 公式ID（OFF-R{YY}{E|L}-{NN}）以外は null。
  */
 export function questionSourceLabel(id: string): string | null {
-  const m = /^OFF-R(\d{1,2})(E|L)-0*(\d+)/i.exec(id)
+  const m = /^OFF-(?:[A-Z]+-)?R(\d{1,2})(E|L)-0*(\d+)/i.exec(id)
   if (!m) return null
   const term = m[2].toUpperCase() === 'E' ? 'early' : 'late'
   return `${sessionLabel(Number(m[1]), term)} 問${Number(m[3])}`
